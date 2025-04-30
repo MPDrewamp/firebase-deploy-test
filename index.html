@@ -185,22 +185,24 @@
     }
 
     // Scan form submission
+    // Scan Form Submission (Updated to store by date and shipping ID)
     document.getElementById("scanForm").addEventListener("submit", function (e) {
       e.preventDefault();
-
+    
       const shippingID = document.getElementById("shippingID").value.trim();
       const stationID = document.getElementById("stationID").value.trim();
       const nexSID = document.getElementById("nexSID").value.trim();
+    
       const now = new Date();
-      const date = now.toLocaleDateString("en-GB");
+      const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
       const time = now.toLocaleTimeString("en-GB");
-
-      db.ref().push({
-        "Shipping ID": shippingID,
+    
+      const scanRef = db.ref(`scans/${date}/${shippingID}`);
+      scanRef.set({
         "Station ID": stationID,
         "NexS ID": nexSID,
         "DATE": date,
-        "TIME": time,
+        "TIME": time
       }).then(() => {
         alert("Scan saved!");
         document.getElementById("scanForm").reset();
