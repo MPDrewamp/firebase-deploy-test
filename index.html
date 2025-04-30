@@ -186,28 +186,41 @@
 
     // Scan form submission
     // Scan Form Submission (Updated to store by date and shipping ID)
-    document.getElementById("scanForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-    
-      const shippingID = document.getElementById("shippingID").value.trim();
-      const stationID = document.getElementById("stationID").value.trim();
-      const nexSID = document.getElementById("nexSID").value.trim();
-    
-      const now = new Date();
-      const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
-      const time = now.toLocaleTimeString("en-GB");
-    
-      const scanRef = db.ref(`scans/${date}/${shippingID}`);
-      scanRef.set({
-        "Station ID": stationID,
-        "NexS ID": nexSID,
-        "DATE": date,
-        "TIME": time
-      }).then(() => {
-        alert("Scan saved!");
-        document.getElementById("scanForm").reset();
-      }).catch(console.error);
-    });
+      document.getElementById("scanForm").addEventListener("submit", function (e) {
+        e.preventDefault(); // ⛔ Prevents the form from refreshing the page
+      
+        const shippingID = document.getElementById("shippingID").value.trim();
+        const stationID = document.getElementById("stationID").value;
+        const nexSID = document.getElementById("nexSID").value.trim();
+        const now = new Date();
+        const date = now.toISOString().split('T')[0]; // 📆 Format like "2025-04-29"
+        const time = now.toLocaleTimeString("en-GB"); // ⏰ Format like "22:49:00"
+      
+        firebase.database().ref("shipping_metadata/" + shippingID).once("value")
+          .then(snapshot => {
+            const data = snapshot.val(); // 📥 Get metadata for this shipping ID
+            const city = data?.City?.toUpperCase(); // 🔍 Try to extract the city name
+      
+            showPopup(`Shipping ID "${shippingID}" belongs to city: ${city || "UNKNOWN"}`);
+            // 🧠 Always show a popup — even if city not found
+      
+            const scanRef = db.ref(`scans/${date}/${shippingID}`); // 📍 Path: scans/2025-04-29/SN123...
+            return scanRef.set({
+              "Station ID": stationID,
+              "NexS ID": nexSID,
+              "DATE": date,
+              "TIME": time,
+            }); // 💾 Save the scan under the right date & shipping ID
+          })
+          .then(() => {
+            document.getElementById("scanForm").reset(); // ✅ Clear the form for the next scan
+          })
+          .catch(error => {
+            console.error("Error fetching city or saving data:", error); // 🐞 Log problems
+            showPopup("An error occurred while processing the scan."); // 😔 Notify the user
+          });
+      });
+
 
     // Excel file upload
     document.getElementById("excelFile").addEventListener("change", function (e) {
