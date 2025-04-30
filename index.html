@@ -121,7 +121,6 @@
   <div class="sidebar">
     <button class="active" onclick="showTab('scanTab', this)">📦 Basic Scanning</button>
     <button onclick="showTab('excelTab', this)">📁 Excel Upload</button>
-    <button onclick="showTab('analyticsTab', this)">📊 Analytics</button>
   </div>
 
   <!-- Main Content -->
@@ -159,26 +158,6 @@
         </form>
       </div>
     </div>
-
-    <div id="analyticsTab" class="tab">
-      <div class="card">
-        <h2>Analytics Dashboard</h2>
-        <div id="analyticsContent">Loading...</div>
-        <button onclick="exportAnalytics()">Export as CSV</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Popup Modal -->
-  <div id="popupModal" style="display: none; position: fixed; top: 0; left: 0;
-    width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); 
-    display: flex; justify-content: center; align-items: center; z-index: 1000;">
-    <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; text-align: center;">
-      <p id="popupMessage" style="margin-bottom: 20px;"></p>
-      <button onclick="closePopup()" style="padding: 10px 20px; border: none; background-color: #3498db; color: white; border-radius: 6px; font-size: 16px; cursor: pointer;">
-        OK
-      </button>
-    </div>
   </div>
 
   <!-- Scripts -->
@@ -202,28 +181,6 @@
       document.querySelectorAll(".sidebar button").forEach(btn => btn.classList.remove("active"));
       document.getElementById(id).classList.add("active");
       button.classList.add("active");
-
-      if (id === "analyticsTab") {
-        loadAnalytics();
-      }
-    }
-
-    // Show Popup
-    function showPopup(message, callback) {
-      const modal = document.getElementById("popupModal");
-      document.getElementById("popupMessage").innerText = message;
-      modal.style.display = "flex";
-      modal.callback = callback;
-    }
-
-    // Close Popup
-    function closePopup() {
-      const modal = document.getElementById("popupModal");
-      modal.style.display = "none";
-      if (typeof modal.callback === "function") {
-        modal.callback();
-        modal.callback = null;
-      }
     }
 
     // Scan form submission
@@ -243,72 +200,49 @@
           const city = data?.City?.toUpperCase();
           const cityMessage = city ? city : "UNKNOWN";
 
-          showPopup(`Shipping ID "${shippingID}" belongs to city: ${cityMessage}`, () => {
-            const scanData = {
-              ShippingID: shippingID,
-              City: cityMessage,
-              StationID: stationID,
-              NexSID: nexSID,
-              Date: date,
-              Time: time,
-            };
-            db.ref("scans").push(scanData);
+          alert(`Shipping ID "${shippingID}" belongs to city: ${cityMessage}`);
+          
+          // Save data
+          const scanRef = db.ref(`scans/${date}/${shippingID}`);
+          scanRef.set({
+            "Station ID": stationID,
+            "NexS ID": nexSID,
+            "DATE": date,
+            "TIME": time,
           });
+
+          document.getElementById("scanForm").reset();
         })
-        .catch(() => {
-          showPopup("Shipping ID not found in database.", () => {});
+        .catch(error => {
+          console.error("Error fetching city or saving data:", error);
+          alert("An error occurred while processing the scan.");
         });
     });
 
-    // Load analytics
-    function loadAnalytics() {
-      document.getElementById("analyticsContent").innerText = "Loading...";
-      db.ref("scans").once("value", snapshot => {
-        const scans = snapshot.val();
-        let skuCount = 0;
-        let redundantScans = 0;
-        const stationScans = {};
+    // Excel file upload
+    document.getElementById("excelFile").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
 
-        for (const key in scans) {
-          const scan = scans[key];
-          if (!stationScans[scan.StationID]) {
-            stationScans[scan.StationID] = [];
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+
+        rows.forEach((row) => {
+          if (row.ShippingID && row.City) {
+            db.ref("shipping_metadata/" + row.ShippingID).set({
+              City: row.City,
+            });
           }
-          stationScans[scan.StationID].push(scan);
-          skuCount++;
-          redundantScans++;
-        }
+        });
 
-        document.getElementById("analyticsContent").innerHTML = `
-          <p>Total SKU Scans: ${skuCount}</p>
-          <p>Redundant Scans: ${redundantScans}</p>
-          <p>Scans by Station:</p>
-          <ul>${Object.entries(stationScans).map(([stationID, scans]) => `<li>${stationID}: ${scans.length} scans</li>`).join("")}</ul>
-        `;
-      });
-    }
-
-    // Export analytics as CSV
-    function exportAnalytics() {
-      db.ref("scans").once("value", snapshot => {
-        const scans = snapshot.val();
-        const data = [];
-        for (const key in scans) {
-          const scan = scans[key];
-          data.push([scan.ShippingID, scan.City, scan.StationID, scan.NexSID, scan.Date, scan.Time]);
-        }
-
-        const ws = XLSX.utils.aoa_to_sheet([
-          ["Shipping ID", "City", "Station ID", "NexSID", "Date", "Time"],
-          ...data
-        ]);
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Scans");
-
-        XLSX.writeFile(wb, "scan_data.xlsx");
-      });
-    }
+        alert("Excel uploaded successfully!");
+      };
+      reader.readAsArrayBuffer(file);
+    });
   </script>
 </body>
 </html>
