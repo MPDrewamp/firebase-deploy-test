@@ -53,6 +53,13 @@
       flex: 1;
       padding: 40px;
       overflow-y: auto;
+      <div id="analyticsTab" class="tab">
+        <div class="card">
+          <h2>Analytics Dashboard</h2>
+          <div id="analyticsContent">Loading...</div>
+          <button onclick="exportAnalytics()">Export as CSV</button>
+        </div>
+      </div>
     }
 
     .tab {
@@ -121,6 +128,7 @@
   <div class="sidebar">
     <button class="active" onclick="showTab('scanTab', this)">📦 Basic Scanning</button>
     <button onclick="showTab('excelTab', this)">📁 Excel Upload</button>
+    <button onclick="showTab('analyticsTab', this)">📊 Analytics</button>
   </div>
 
   <!-- Main Content -->
@@ -272,6 +280,108 @@
       };
       reader.readAsArrayBuffer(file);
     });
+    
+    <script>
+  async function loadAnalytics() {
+    const snapshot = await db.ref("scans").once("value");
+    const scans = snapshot.val();
+    const stationCounts = {};
+    const redundantCounts = {};
+    const skuTrack = {};
+    const exportRows = [];
+
+    for (let date in scans) {
+      for (let sku in scans[date]) {
+        const entry = scans[date][sku];
+        const key = `${sku}`;
+        const station = entry["Station ID"];
+
+        // Count SKUs per station
+        stationCounts[station] = (stationCounts[station] || 0) + 1;
+
+        // Redundant scan per station
+        const stationKey = `${station}_${sku}`;
+        redundantCounts[stationKey] = (redundantCounts[stationKey] || 0) + 1;
+
+        // Track if scanned across different stations
+        if (!skuTrack[sku]) {
+          skuTrack[sku] = new Set();
+        }
+        skuTrack[sku].add(station);
+
+        // For export
+        exportRows.push({
+          "SKU ID": sku,
+          "Station ID": station,
+          "Date": date,
+          "Timestamp": entry.TIME,
+          "NexS ID": entry["NexS ID"],
+        });
+      }
+    }
+
+    // Build HTML
+    const html = [];
+
+    html.push("<h3>Total SKUs per Station:</h3><ul>");
+    for (let station in stationCounts) {
+      html.push(`<li><strong>${station}</strong>: ${stationCounts[station]}</li>`);
+    }
+    html.push("</ul>");
+
+    html.push("<h3>Redundant Scans Per Station:</h3><ul>");
+    for (let key in redundantCounts) {
+      if (redundantCounts[key] > 1) {
+        const [station, sku] = key.split("_");
+        html.push(`<li>${sku} at ${station} (${redundantCounts[key]} times)</li>`);
+      }
+    }
+    html.push("</ul>");
+
+    html.push("<h3>Cross-Station Scans:</h3><ul>");
+    for (let sku in skuTrack) {
+      if (skuTrack[sku].size > 1) {
+        html.push(`<li>${sku} at ${[...skuTrack[sku]].join(", ")}</li>`);
+      }
+    }
+    html.push("</ul>");
+
+    document.getElementById("analyticsContent").innerHTML = html.join("");
+    window.exportData = exportRows;
+  }
+
+  function exportAnalytics() {
+    if (!window.exportData) return alert("No data to export.");
+    const headers = Object.keys(window.exportData[0]);
+    const csvRows = [
+      headers.join(","),
+      ...window.exportData.map(row =>
+        headers.map(field => `"${row[field]}"`).join(",")
+      )
+    ];
+    const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "scan_analytics.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Load analytics when tab is opened
+    function showTab(id, button) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".sidebar button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      button.classList.add("active");
+  
+      if (id === "analyticsTab") {
+        loadAnalytics();
+      }
+    }
+  </script>
+
+
   </script>
 </body>
 </html>
