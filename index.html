@@ -203,7 +203,7 @@
           alert(`Shipping ID "${shippingID}" belongs to city: ${cityMessage}`);
           
           // Save data
-          const scanRef = db.ref(`scans/${date}/${shippingID}`);
+          const scanRef = db.ref(`scans/${shippingID}`);
           scanRef.set({
             "Station ID": stationID,
             "NexS ID": nexSID,
