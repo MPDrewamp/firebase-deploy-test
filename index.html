@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dispatch Dashboard</title>
+  <title>NexS Dispatch Dashboard</title>
 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+  
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -13,6 +19,7 @@
   <style>
     * {
       box-sizing: border-box;
+      transition: all 0.3s ease;
     }
 
     body {
@@ -22,15 +29,33 @@
       color: #2c3e50;
       display: flex;
       height: 100vh;
+      overflow: hidden;
     }
 
     .sidebar {
-      width: 220px;
       background: #2c3e50;
       color: white;
+      height: 100%;
+      transition: width 0.3s ease;
+      overflow-x: hidden;
+      z-index: 100;
+    }
+
+    .sidebar-expanded {
+      width: 220px;
+    }
+
+    .sidebar-collapsed {
+      width: 60px;
+    }
+
+    .sidebar-toggle {
       display: flex;
-      flex-direction: column;
-      padding: 30px 0;
+      justify-content: center;
+      align-items: center;
+      height: 50px;
+      cursor: pointer;
+      border-bottom: 1px solid #34495e;
     }
 
     .sidebar button {
@@ -42,11 +67,20 @@
       font-size: 16px;
       cursor: pointer;
       transition: background 0.3s;
+      width: 100%;
+      display: flex;
+      align-items: center;
     }
 
     .sidebar button:hover,
     .sidebar button.active {
       background-color: #34495e;
+    }
+
+    .sidebar button i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
     }
 
     .content {
@@ -75,6 +109,8 @@
     .card h2 {
       margin-top: 0;
       margin-bottom: 20px;
+      text-align: center;
+      color: #2c3e50;
     }
 
     label {
@@ -84,7 +120,8 @@
     }
 
     input[type="text"],
-    input[type="file"] {
+    input[type="file"],
+    select {
       width: 100%;
       padding: 10px;
       font-size: 15px;
@@ -93,7 +130,7 @@
       margin-top: 6px;
     }
 
-    button[type="submit"] {
+    .submit-btn {
       margin-top: 20px;
       background-color: #3498db;
       color: white;
@@ -103,9 +140,13 @@
       border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: auto;
     }
 
-    button[type="submit"]:hover {
+    .submit-btn:hover {
       background-color: #2980b9;
     }
 
@@ -113,34 +154,158 @@
       color: #888;
       font-size: 13px;
     }
+
+    /* Popup styles */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .popup-title {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    .popup-city {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #3498db;
+    }
+
+    .popup-btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .popup-btn:hover {
+      background-color: #2980b9;
+    }
+
+    /* Header styles */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    /* Logo styles */
+    .logo {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid #34495e;
+    }
+
+    .logo span {
+      font-size: 20px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    /* For collapsed menu */
+    .menu-text {
+      white-space: nowrap;
+    }
   </style>
 </head>
 
 <body>
+  <!-- Popup -->
+  <div id="cityPopup" class="popup">
+    <div class="popup-content">
+      <h3 class="popup-title">Shipping Destination</h3>
+      <div class="popup-city" id="popupCityText">CITY</div>
+      <button class="popup-btn" onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
   <!-- Sidebar -->
-  <div class="sidebar">
-    <button class="active" onclick="showTab('packingTab', this)">📦 Packing Scans</button>
-    <button onclick="showTab('dispatchTab', this)">🚚 Dispatch Scans</button>
-    <button onclick="showTab('excelTab', this)">📁 Excel Upload</button>
+  <div id="sidebar" class="sidebar sidebar-expanded">
+    <div class="logo">
+      <i class="fas fa-boxes text-blue-500 text-2xl"></i>
+      <span class="menu-text">NexS</span>
+    </div>
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <i id="sidebarIcon" class="fas fa-chevron-left"></i>
+    </div>
+    <button class="active" onclick="showTab('packingTab', this)">
+      <i class="fas fa-box"></i>
+      <span class="menu-text">Packing Scans</span>
+    </button>
+    <button onclick="showTab('dispatchTab', this)">
+      <i class="fas fa-truck"></i>
+      <span class="menu-text">Dispatch Scans</span>
+    </button>
+    <button onclick="showTab('excelTab', this)">
+      <i class="fas fa-file-excel"></i>
+      <span class="menu-text">Excel Upload</span>
+    </button>
   </div>
 
   <!-- Main Content -->
   <div class="content">
+    <div class="header">
+      <div class="header-title">JIT Order Search</div>
+      <div>
+        <i class="fas fa-search mr-3"></i>
+        <i class="fas fa-eye mr-3"></i>
+        <i class="fas fa-bell"></i>
+      </div>
+    </div>
+
     <!-- Packing Scan -->
     <div id="packingTab" class="tab active">
       <div class="card">
-        <h2>Packing Scan</h2>
+        <h2>Scan Fitting ID / Tray ID</h2>
         <form id="packingForm">
           <label>Shipping ID:
             <input type="text" id="packingShippingID" required />
+            <button type="button" class="text-gray-500 text-sm mt-1" onclick="clearShippingID('packing')">Clear</button>
           </label>
           <label>Station ID:
-            <input type="text" id="packingStationID" required />
+            <select id="packingStationID" required>
+              <option value="" disabled selected>Select station</option>
+              <!-- PS01 to PS30 will be populated by JavaScript -->
+            </select>
           </label>
           <label>NexS ID:
             <input type="text" id="packingNexSID" required />
           </label>
-          <button type="submit">Submit Packing Scan</button>
+          <button type="submit" class="submit-btn">Submit Packing Scan</button>
         </form>
       </div>
     </div>
@@ -148,18 +313,22 @@
     <!-- Dispatch Scan -->
     <div id="dispatchTab" class="tab">
       <div class="card">
-        <h2>Dispatch Scan</h2>
+        <h2>Scan Fitting ID / Tray ID</h2>
         <form id="dispatchForm">
           <label>Shipping ID:
             <input type="text" id="dispatchShippingID" required />
+            <button type="button" class="text-gray-500 text-sm mt-1" onclick="clearShippingID('dispatch')">Clear</button>
           </label>
           <label>Station ID:
-            <input type="text" id="dispatchStationID" required />
+            <select id="dispatchStationID" required>
+              <option value="" disabled selected>Select station</option>
+              <!-- DS01 to DS25 will be populated by JavaScript -->
+            </select>
           </label>
           <label>NexS ID:
             <input type="text" id="dispatchNexSID" required />
           </label>
-          <button type="submit">Submit Dispatch Scan</button>
+          <button type="submit" class="submit-btn">Submit Dispatch Scan</button>
         </form>
       </div>
     </div>
@@ -173,6 +342,7 @@
             <input type="file" id="excelFile" accept=".xlsx, .xls" />
           </label>
           <p><small>Expected columns: <strong>ShippingID</strong> and <strong>City</strong></small></p>
+          <button type="button" id="uploadExcelBtn" class="submit-btn">Upload</button>
         </form>
       </div>
     </div>
@@ -193,11 +363,79 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Populate station ID dropdowns
+    function populateStationDropdowns() {
+      const packingStationID = document.getElementById("packingStationID");
+      const dispatchStationID = document.getElementById("dispatchStationID");
+      
+      // Clear existing options except the default one
+      while (packingStationID.options.length > 1) {
+        packingStationID.remove(1);
+      }
+      while (dispatchStationID.options.length > 1) {
+        dispatchStationID.remove(1);
+      }
+      
+      // Add PS01 to PS30 for packing
+      for (let i = 1; i <= 30; i++) {
+        const stationNum = i.toString().padStart(2, '0');
+        const option = document.createElement("option");
+        option.value = `PS${stationNum}`;
+        option.textContent = `PS${stationNum}`;
+        packingStationID.appendChild(option);
+      }
+      
+      // Add DS01 to DS25 for dispatch
+      for (let i = 1; i <= 25; i++) {
+        const stationNum = i.toString().padStart(2, '0');
+        const option = document.createElement("option");
+        option.value = `DS${stationNum}`;
+        option.textContent = `DS${stationNum}`;
+        dispatchStationID.appendChild(option);
+      }
+    }
+
     function showTab(id, button) {
       document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
       document.querySelectorAll(".sidebar button").forEach(btn => btn.classList.remove("active"));
       document.getElementById(id).classList.add("active");
       button.classList.add("active");
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const sidebarIcon = document.getElementById("sidebarIcon");
+      const menuTexts = document.querySelectorAll(".menu-text");
+      
+      if (sidebar.classList.contains("sidebar-expanded")) {
+        sidebar.classList.remove("sidebar-expanded");
+        sidebar.classList.add("sidebar-collapsed");
+        sidebarIcon.classList.remove("fa-chevron-left");
+        sidebarIcon.classList.add("fa-chevron-right");
+        menuTexts.forEach(text => text.style.display = "none");
+      } else {
+        sidebar.classList.remove("sidebar-collapsed");
+        sidebar.classList.add("sidebar-expanded");
+        sidebarIcon.classList.remove("fa-chevron-right");
+        sidebarIcon.classList.add("fa-chevron-left");
+        menuTexts.forEach(text => text.style.display = "inline");
+      }
+    }
+
+    function clearShippingID(formType) {
+      document.getElementById(`${formType}ShippingID`).value = '';
+      document.getElementById(`${formType}ShippingID`).focus();
+    }
+
+    function showPopup(city) {
+      const popup = document.getElementById("cityPopup");
+      const cityText = document.getElementById("popupCityText");
+      cityText.textContent = city;
+      popup.style.display = "flex";
+    }
+
+    function closePopup() {
+      document.getElementById("cityPopup").style.display = "none";
     }
 
     // Packing Scan Form
@@ -212,8 +450,12 @@
 
       firebase.database().ref("shipping_metadata/" + shippingID).once("value")
         .then(snapshot => {
-          const city = snapshot.val()?.City?.toUpperCase() || "UNKNOWN";
-          alert(`Shipping ID "${shippingID}" belongs to city: ${city}`);
+          const cityData = snapshot.val()?.City;
+          
+          if (cityData) {
+            const city = cityData.toUpperCase();
+            showPopup(city);
+          }
 
           db.ref(`packing_scans/${shippingID}`).set({
             "Station ID": stationID,
@@ -222,7 +464,7 @@
             "TIME": time,
           });
 
-          document.getElementById("packingForm").reset();
+          clearShippingID('packing');
         })
         .catch(error => {
           console.error("Packing Scan Error:", error);
@@ -242,8 +484,12 @@
 
       firebase.database().ref("shipping_metadata/" + shippingID).once("value")
         .then(snapshot => {
-          const city = snapshot.val()?.City?.toUpperCase() || "UNKNOWN";
-          alert(`Shipping ID "${shippingID}" belongs to city: ${city}`);
+          const cityData = snapshot.val()?.City;
+          
+          if (cityData) {
+            const city = cityData.toUpperCase();
+            showPopup(city);
+          }
 
           db.ref(`dispatch_scans/${shippingID}`).set({
             "Station ID": stationID,
@@ -252,7 +498,7 @@
             "TIME": time,
           });
 
-          document.getElementById("dispatchForm").reset();
+          clearShippingID('dispatch');
         })
         .catch(error => {
           console.error("Dispatch Scan Error:", error);
@@ -261,9 +507,13 @@
     });
 
     // Excel Upload
-    document.getElementById("excelFile").addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      if (!file) return;
+    document.getElementById("uploadExcelBtn").addEventListener("click", function () {
+      const fileInput = document.getElementById("excelFile");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select an Excel file first.");
+        return;
+      }
 
       const reader = new FileReader();
       reader.onload = function (event) {
@@ -272,16 +522,24 @@
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet);
 
+        let uploadCount = 0;
         rows.forEach((row) => {
           if (row.ShippingID && row.City) {
             db.ref("shipping_metadata/" + row.ShippingID).set({ City: row.City });
+            uploadCount++;
           }
         });
 
-        alert("Excel uploaded successfully!");
+        alert(`Excel uploaded successfully! ${uploadCount} records processed.`);
+        fileInput.value = '';
       };
       reader.readAsArrayBuffer(file);
     });
+
+    // Initialize the app
+    window.onload = function() {
+      populateStationDropdowns();
+    };
   </script>
 </body>
 </html>
