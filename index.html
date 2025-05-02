@@ -84,6 +84,7 @@
       color: #3498db;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .sidebar button {
@@ -114,32 +115,32 @@
     /* Content */
     .content {
       flex: 1;
-      padding: 40px;
+      padding: 20px;
       margin-top: 60px;
       margin-left: 250px;
       transition: margin-left 0.3s ease;
       overflow-y: auto;
-      display: flex;
+      position: relative;
     }
 
     .content-expanded {
       margin-left: 0;
     }
 
-    /* Content left (forms) */
-    .content-left {
-      flex: 3;
-    }
-
-    /* Content right (stats) */
-    .content-right {
-      flex: 1;
-      margin-left: 20px;
+    /* Center aligned container */
+    .center-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
     .tab {
       display: none;
       animation: fadeIn 0.3s;
+      width: 100%;
     }
 
     @keyframes fadeIn {
@@ -150,44 +151,52 @@
     .tab.active {
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
 
     .card {
       background: white;
+      width: 100%;
       max-width: 500px;
-      margin: 20px auto;
+      margin: 20px 0;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
+    /* Stats card - positioned top right */
     .stats-card {
       background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 80px;
+      right: 30px;
+      width: 200px;
+      z-index: 95;
     }
 
     .stats-card h3 {
       margin-top: 0;
+      margin-bottom: 10px;
       color: #2c3e50;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
+      font-size: 16px;
+      text-align: center;
     }
 
     .stats-number {
-      font-size: 32px;
+      font-size: 24px;
       font-weight: bold;
       color: #3498db;
       text-align: center;
-      margin: 20px 0;
+      margin: 10px 0;
     }
 
     .stats-label {
       text-align: center;
       color: #7f8c8d;
-      font-size: 14px;
+      font-size: 12px;
     }
 
     .card h2 {
@@ -202,6 +211,7 @@
       display: block;
       margin-bottom: 15px;
       font-weight: 500;
+      text-align: center;
     }
 
     input[type="text"],
@@ -215,6 +225,7 @@
       margin-top: 8px;
       background-color: #f8f9fa;
       transition: border-color 0.3s, box-shadow 0.3s;
+      text-align: center;
     }
 
     input[type="text"]:focus,
@@ -263,6 +274,8 @@
     small {
       color: #7f8c8d;
       font-size: 13px;
+      display: block;
+      text-align: center;
     }
 
     /* Modal/Popup */
@@ -334,7 +347,7 @@
     .modal-button:hover {
       background-color: #2980b9;
     }
-
+    
     /* Toast notification */
     .toast {
       visibility: hidden;
@@ -396,9 +409,17 @@
 
   <!-- Main Content -->
   <div class="content">
-    <!-- Packing Scan -->
-    <div id="packingTab" class="tab active">
-      <div class="content-left">
+    <!-- Stats panel - top right -->
+    <div class="stats-card" id="activeStatsCard">
+      <h3 id="statsTitle">Station Activity</h3>
+      <div class="stats-number" id="statsCount">0</div>
+      <div class="stats-label">Scans in the last hour</div>
+      <div class="stats-label" id="statsStationName">No station selected</div>
+    </div>
+
+    <div class="center-container">
+      <!-- Packing Scan -->
+      <div id="packingTab" class="tab active">
         <div class="card">
           <h2>Packing Scan</h2>
           <form id="packingForm">
@@ -420,25 +441,12 @@
             <label>NexS ID:
               <input type="text" id="packingNexSID" required placeholder="Enter NexS ID" />
             </label>
-            <!-- Submit button removed as per requirements -->
           </form>
         </div>
       </div>
-      
-      <!-- Stats panel -->
-      <div class="content-right">
-        <div class="stats-card">
-          <h3>Packing Station Activity</h3>
-          <div class="stats-number" id="packingStationCount">0</div>
-          <div class="stats-label">Scans in the last hour</div>
-          <div class="stats-label" id="packingStationName">No station selected</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Dispatch Scan -->
-    <div id="dispatchTab" class="tab">
-      <div class="content-left">
+      <!-- Dispatch Scan -->
+      <div id="dispatchTab" class="tab">
         <div class="card">
           <h2>Dispatch Scan</h2>
           <form id="dispatchForm">
@@ -460,25 +468,12 @@
             <label>NexS ID:
               <input type="text" id="dispatchNexSID" required placeholder="Enter NexS ID" />
             </label>
-            <!-- Submit button removed as per requirements -->
           </form>
         </div>
       </div>
-      
-      <!-- Stats panel -->
-      <div class="content-right">
-        <div class="stats-card">
-          <h3>Dispatch Station Activity</h3>
-          <div class="stats-number" id="dispatchStationCount">0</div>
-          <div class="stats-label">Scans in the last hour</div>
-          <div class="stats-label" id="dispatchStationName">No station selected</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Excel Upload -->
-    <div id="excelTab" class="tab">
-      <div class="content-left">
+      <!-- Excel Upload -->
+      <div id="excelTab" class="tab">
         <div class="card">
           <h2>Upload Excel File</h2>
           <form id="excelForm">
@@ -501,7 +496,6 @@
       <span class="close-modal">&times;</span>
       <h3>Shipping Information</h3>
       <div class="city-name" id="cityDisplay"></div>
-      <!-- OK button removed as requested -->
     </div>
   </div>
 
@@ -565,11 +559,16 @@
       document.getElementById(id).classList.add("active");
       button.classList.add("active");
       
-      // Update station counts when switching tabs
+      // Update stats title based on active tab
+      const statsTitle = document.getElementById("statsTitle");
       if (id === "packingTab") {
+        statsTitle.textContent = "Packing Activity";
         updateStationCount("packing");
       } else if (id === "dispatchTab") {
+        statsTitle.textContent = "Dispatch Activity";
         updateStationCount("dispatch");
+      } else {
+        statsTitle.textContent = "Station Activity";
       }
     }
 
@@ -647,17 +646,13 @@
     // Update station scan count 
     function updateStationCount(scanType) {
       let stationId;
-      let stationNameElement;
-      let countElement;
+      let stationNameElement = document.getElementById("statsStationName");
+      let countElement = document.getElementById("statsCount");
       
       if (scanType === "packing") {
         stationId = document.getElementById("packingStationID").value;
-        stationNameElement = document.getElementById("packingStationName");
-        countElement = document.getElementById("packingStationCount");
       } else {
         stationId = document.getElementById("dispatchStationID").value;
-        stationNameElement = document.getElementById("dispatchStationName");
-        countElement = document.getElementById("dispatchStationCount");
       }
       
       // If no station selected, don't try to count
