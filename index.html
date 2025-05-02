@@ -119,39 +119,57 @@
 <body>
   <!-- Sidebar -->
   <div class="sidebar">
-    <button class="active" onclick="showTab('scanTab', this)">📦 Basic Scanning</button>
+    <button class="active" onclick="showTab('packingTab', this)">📦 Packing Scans</button>
+    <button onclick="showTab('dispatchTab', this)">🚚 Dispatch Scans</button>
     <button onclick="showTab('excelTab', this)">📁 Excel Upload</button>
   </div>
 
   <!-- Main Content -->
   <div class="content">
-    <div id="scanTab" class="tab active">
+    <!-- Packing Scan -->
+    <div id="packingTab" class="tab active">
       <div class="card">
-        <h2>Basic Scanning</h2>
-        <form id="scanForm">
-          <label>
-            Shipping ID:
-            <input type="text" id="shippingID" required />
+        <h2>Packing Scan</h2>
+        <form id="packingForm">
+          <label>Shipping ID:
+            <input type="text" id="packingShippingID" required />
           </label>
-          <label>
-            Station ID:
-            <input type="text" id="stationID" required />
+          <label>Station ID:
+            <input type="text" id="packingStationID" required />
           </label>
-          <label>
-            NexS ID:
-            <input type="text" id="nexSID" required />
+          <label>NexS ID:
+            <input type="text" id="packingNexSID" required />
           </label>
-          <button type="submit">Submit Scan</button>
+          <button type="submit">Submit Packing Scan</button>
         </form>
       </div>
     </div>
 
+    <!-- Dispatch Scan -->
+    <div id="dispatchTab" class="tab">
+      <div class="card">
+        <h2>Dispatch Scan</h2>
+        <form id="dispatchForm">
+          <label>Shipping ID:
+            <input type="text" id="dispatchShippingID" required />
+          </label>
+          <label>Station ID:
+            <input type="text" id="dispatchStationID" required />
+          </label>
+          <label>NexS ID:
+            <input type="text" id="dispatchNexSID" required />
+          </label>
+          <button type="submit">Submit Dispatch Scan</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Excel Upload -->
     <div id="excelTab" class="tab">
       <div class="card">
         <h2>Upload Excel File</h2>
         <form>
-          <label>
-            Upload Excel:
+          <label>Upload Excel:
             <input type="file" id="excelFile" accept=".xlsx, .xls" />
           </label>
           <p><small>Expected columns: <strong>ShippingID</strong> and <strong>City</strong></small></p>
@@ -169,8 +187,7 @@
       projectId: "packing-dispatch-rewamp",
       storageBucket: "packing-dispatch-rewamp.appspot.com",
       messagingSenderId: "369109746944",
-      appId: "1:369109746944:web:fc5a8db4c016997c581fe5",
-      measurementId: "G-FZM8FB25BP"
+      appId: "1:369109746944:web:fc5a8db4c016997c581fe5"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -183,43 +200,67 @@
       button.classList.add("active");
     }
 
-    // Scan form submission
-    document.getElementById("scanForm").addEventListener("submit", function (e) {
+    // Packing Scan Form
+    document.getElementById("packingForm").addEventListener("submit", function (e) {
       e.preventDefault();
-
-      const shippingID = document.getElementById("shippingID").value.trim();
-      const stationID = document.getElementById("stationID").value;
-      const nexSID = document.getElementById("nexSID").value.trim();
+      const shippingID = document.getElementById("packingShippingID").value.trim();
+      const stationID = document.getElementById("packingStationID").value;
+      const nexSID = document.getElementById("packingNexSID").value.trim();
       const now = new Date();
       const date = now.toISOString().split('T')[0];
       const time = now.toLocaleTimeString("en-GB");
 
       firebase.database().ref("shipping_metadata/" + shippingID).once("value")
         .then(snapshot => {
-          const data = snapshot.val();
-          const city = data?.City?.toUpperCase();
-          const cityMessage = city ? city : "UNKNOWN";
+          const city = snapshot.val()?.City?.toUpperCase() || "UNKNOWN";
+          alert(`Shipping ID "${shippingID}" belongs to city: ${city}`);
 
-          alert(`Shipping ID "${shippingID}" belongs to city: ${cityMessage}`);
-          
-          // Save data
-          const scanRef = db.ref(`scans/${shippingID}`);
-          scanRef.set({
+          db.ref(`packing_scans/${shippingID}`).set({
             "Station ID": stationID,
             "NexS ID": nexSID,
             "DATE": date,
             "TIME": time,
           });
 
-          document.getElementById("scanForm").reset();
+          document.getElementById("packingForm").reset();
         })
         .catch(error => {
-          console.error("Error fetching city or saving data:", error);
-          alert("An error occurred while processing the scan.");
+          console.error("Packing Scan Error:", error);
+          alert("Error processing packing scan.");
         });
     });
 
-    // Excel file upload
+    // Dispatch Scan Form
+    document.getElementById("dispatchForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const shippingID = document.getElementById("dispatchShippingID").value.trim();
+      const stationID = document.getElementById("dispatchStationID").value;
+      const nexSID = document.getElementById("dispatchNexSID").value.trim();
+      const now = new Date();
+      const date = now.toISOString().split('T')[0];
+      const time = now.toLocaleTimeString("en-GB");
+
+      firebase.database().ref("shipping_metadata/" + shippingID).once("value")
+        .then(snapshot => {
+          const city = snapshot.val()?.City?.toUpperCase() || "UNKNOWN";
+          alert(`Shipping ID "${shippingID}" belongs to city: ${city}`);
+
+          db.ref(`dispatch_scans/${shippingID}`).set({
+            "Station ID": stationID,
+            "NexS ID": nexSID,
+            "DATE": date,
+            "TIME": time,
+          });
+
+          document.getElementById("dispatchForm").reset();
+        })
+        .catch(error => {
+          console.error("Dispatch Scan Error:", error);
+          alert("Error processing dispatch scan.");
+        });
+    });
+
+    // Excel Upload
     document.getElementById("excelFile").addEventListener("change", function (e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -233,9 +274,7 @@
 
         rows.forEach((row) => {
           if (row.ShippingID && row.City) {
-            db.ref("shipping_metadata/" + row.ShippingID).set({
-              City: row.City,
-            });
+            db.ref("shipping_metadata/" + row.ShippingID).set({ City: row.City });
           }
         });
 
