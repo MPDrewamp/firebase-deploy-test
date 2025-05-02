@@ -5,12 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NexS Dispatch Dashboard</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.js"></script>
-  
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
-  
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -19,7 +13,6 @@
   <style>
     * {
       box-sizing: border-box;
-      transition: all 0.3s ease;
     }
 
     body {
@@ -32,30 +25,65 @@
       overflow: hidden;
     }
 
-    .sidebar {
+    /* Header */
+    .header {
       background: #2c3e50;
       color: white;
-      height: 100%;
-      transition: width 0.3s ease;
-      overflow-x: hidden;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      position: fixed;
+      width: 100%;
+      top: 0;
       z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
-    .sidebar-expanded {
-      width: 220px;
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .header .toggle-sidebar {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      margin-right: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      height: 100%;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      transition: transform 0.3s ease;
+      z-index: 90;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     }
 
     .sidebar-collapsed {
-      width: 60px;
+      transform: translateX(-250px);
     }
 
-    .sidebar-toggle {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 50px;
-      cursor: pointer;
-      border-bottom: 1px solid #34495e;
+    .sidebar .logo {
+      padding: 0 20px 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #3498db;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 20px;
     }
 
     .sidebar button {
@@ -67,14 +95,8 @@
       font-size: 16px;
       cursor: pointer;
       transition: background 0.3s;
-      width: 100%;
       display: flex;
       align-items: center;
-    }
-
-    .sidebar button:hover,
-    .sidebar button.active {
-      background-color: #34495e;
     }
 
     .sidebar button i {
@@ -83,14 +105,34 @@
       text-align: center;
     }
 
+    .sidebar button:hover,
+    .sidebar button.active {
+      background-color: #34495e;
+      border-left: 4px solid #3498db;
+    }
+
+    /* Content */
     .content {
       flex: 1;
       padding: 40px;
+      margin-top: 60px;
+      margin-left: 250px;
+      transition: margin-left 0.3s ease;
       overflow-y: auto;
+    }
+
+    .content-expanded {
+      margin-left: 0;
     }
 
     .tab {
       display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .tab.active {
@@ -100,7 +142,7 @@
     .card {
       background: white;
       max-width: 500px;
-      margin: auto;
+      margin: 20px auto;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -109,8 +151,9 @@
     .card h2 {
       margin-top: 0;
       margin-bottom: 20px;
-      text-align: center;
       color: #2c3e50;
+      text-align: center;
+      font-weight: 600;
     }
 
     label {
@@ -123,189 +166,167 @@
     input[type="file"],
     select {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       font-size: 15px;
-      border: 1px solid #ccc;
+      border: 1px solid #dce4ec;
       border-radius: 6px;
-      margin-top: 6px;
+      margin-top: 8px;
+      background-color: #f8f9fa;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
 
-    .submit-btn {
-      margin-top: 20px;
+    input[type="text"]:focus,
+    input[type="file"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .button-container {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    button[type="submit"] {
       background-color: #3498db;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 12px 25px;
       font-size: 16px;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.3s;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-      width: auto;
+      transition: background-color 0.3s, transform 0.1s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .submit-btn:hover {
+    button[type="submit"]:hover {
       background-color: #2980b9;
     }
 
+    button[type="submit"]:active {
+      transform: translateY(2px);
+    }
+
     small {
-      color: #888;
+      color: #7f8c8d;
       font-size: 13px;
     }
 
-    /* Popup styles */
-    .popup {
+    /* Modal/Popup */
+    .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
       z-index: 1000;
-      align-items: center;
-      justify-content: center;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
     }
 
-    .popup-content {
-      background-color: white;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 400px;
-      width: 90%;
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px 30px;
+      border-radius: 8px;
+      width: 350px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s;
       text-align: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
-    .popup-title {
-      margin-top: 0;
-      color: #2c3e50;
+    @keyframes slideIn {
+      from {transform: translateY(-50px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
     }
 
-    .popup-city {
+    .close-modal {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: -10px;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    .city-name {
       font-size: 24px;
       font-weight: bold;
       margin: 20px 0;
-      color: #3498db;
+      color: #2c3e50;
     }
 
-    .popup-btn {
+    .modal-buttons {
+      margin-top: 20px;
+    }
+
+    .modal-button {
       background-color: #3498db;
       color: white;
       border: none;
       padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
+      font-size: 15px;
       transition: background-color 0.3s;
     }
 
-    .popup-btn:hover {
+    .modal-button:hover {
       background-color: #2980b9;
-    }
-
-    /* Header styles */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 20px;
-      background-color: white;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .header-title {
-      font-size: 22px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-
-    /* Logo styles */
-    .logo {
-      display: flex;
-      align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid #34495e;
-    }
-
-    .logo span {
-      font-size: 20px;
-      font-weight: bold;
-      margin-left: 10px;
-    }
-
-    /* For collapsed menu */
-    .menu-text {
-      white-space: nowrap;
     }
   </style>
 </head>
 
 <body>
-  <!-- Popup -->
-  <div id="cityPopup" class="popup">
-    <div class="popup-content">
-      <h3 class="popup-title">Shipping Destination</h3>
-      <div class="popup-city" id="popupCityText">CITY</div>
-      <button class="popup-btn" onclick="closePopup()">OK</button>
-    </div>
+  <!-- Header -->
+  <div class="header">
+    <button class="toggle-sidebar">☰</button>
+    <h1>NexS Dispatch Dashboard</h1>
   </div>
 
   <!-- Sidebar -->
-  <div id="sidebar" class="sidebar sidebar-expanded">
-    <div class="logo">
-      <i class="fas fa-boxes text-blue-500 text-2xl"></i>
-      <span class="menu-text">NexS</span>
-    </div>
-    <div class="sidebar-toggle" onclick="toggleSidebar()">
-      <i id="sidebarIcon" class="fas fa-chevron-left"></i>
-    </div>
-    <button class="active" onclick="showTab('packingTab', this)">
-      <i class="fas fa-box"></i>
-      <span class="menu-text">Packing Scans</span>
-    </button>
-    <button onclick="showTab('dispatchTab', this)">
-      <i class="fas fa-truck"></i>
-      <span class="menu-text">Dispatch Scans</span>
-    </button>
-    <button onclick="showTab('excelTab', this)">
-      <i class="fas fa-file-excel"></i>
-      <span class="menu-text">Excel Upload</span>
-    </button>
+  <div class="sidebar">
+    <div class="logo">NexS</div>
+    <button class="active" onclick="showTab('packingTab', this)"><i>📦</i> Packing Scans</button>
+    <button onclick="showTab('dispatchTab', this)"><i>🚚</i> Dispatch Scans</button>
+    <button onclick="showTab('excelTab', this)"><i>📁</i> Excel Upload</button>
   </div>
 
   <!-- Main Content -->
   <div class="content">
-    <div class="header">
-      <div class="header-title">JIT Order Search</div>
-      <div>
-        <i class="fas fa-search mr-3"></i>
-        <i class="fas fa-eye mr-3"></i>
-        <i class="fas fa-bell"></i>
-      </div>
-    </div>
-
     <!-- Packing Scan -->
     <div id="packingTab" class="tab active">
       <div class="card">
-        <h2>Scan Fitting ID / Tray ID</h2>
+        <h2>Packing Scan</h2>
         <form id="packingForm">
           <label>Shipping ID:
-            <input type="text" id="packingShippingID" required />
-            <button type="button" class="text-gray-500 text-sm mt-1" onclick="clearShippingID('packing')">Clear</button>
+            <input type="text" id="packingShippingID" required placeholder="Enter shipping ID" />
           </label>
           <label>Station ID:
             <select id="packingStationID" required>
-              <option value="" disabled selected>Select station</option>
-              <!-- PS01 to PS30 will be populated by JavaScript -->
+              <option value="" disabled selected>Select packing station</option>
+              <script>
+                for (let i = 1; i <= 30; i++) {
+                  const stationId = i < 10 ? `PS0${i}` : `PS${i}`;
+                  document.write(`<option value="${stationId}">${stationId}</option>`);
+                }
+              </script>
             </select>
           </label>
           <label>NexS ID:
-            <input type="text" id="packingNexSID" required />
+            <input type="text" id="packingNexSID" required placeholder="Enter NexS ID" />
           </label>
-          <button type="submit" class="submit-btn">Submit Packing Scan</button>
+          <div class="button-container">
+            <button type="submit">Submit Packing Scan</button>
+          </div>
         </form>
       </div>
     </div>
@@ -313,22 +334,28 @@
     <!-- Dispatch Scan -->
     <div id="dispatchTab" class="tab">
       <div class="card">
-        <h2>Scan Fitting ID / Tray ID</h2>
+        <h2>Dispatch Scan</h2>
         <form id="dispatchForm">
           <label>Shipping ID:
-            <input type="text" id="dispatchShippingID" required />
-            <button type="button" class="text-gray-500 text-sm mt-1" onclick="clearShippingID('dispatch')">Clear</button>
+            <input type="text" id="dispatchShippingID" required placeholder="Enter shipping ID" />
           </label>
           <label>Station ID:
             <select id="dispatchStationID" required>
-              <option value="" disabled selected>Select station</option>
-              <!-- DS01 to DS25 will be populated by JavaScript -->
+              <option value="" disabled selected>Select dispatch station</option>
+              <script>
+                for (let i = 1; i <= 25; i++) {
+                  const stationId = i < 10 ? `DS0${i}` : `DS${i}`;
+                  document.write(`<option value="${stationId}">${stationId}</option>`);
+                }
+              </script>
             </select>
           </label>
           <label>NexS ID:
-            <input type="text" id="dispatchNexSID" required />
+            <input type="text" id="dispatchNexSID" required placeholder="Enter NexS ID" />
           </label>
-          <button type="submit" class="submit-btn">Submit Dispatch Scan</button>
+          <div class="button-container">
+            <button type="submit">Submit Dispatch Scan</button>
+          </div>
         </form>
       </div>
     </div>
@@ -337,13 +364,27 @@
     <div id="excelTab" class="tab">
       <div class="card">
         <h2>Upload Excel File</h2>
-        <form>
+        <form id="excelForm">
           <label>Upload Excel:
             <input type="file" id="excelFile" accept=".xlsx, .xls" />
           </label>
           <p><small>Expected columns: <strong>ShippingID</strong> and <strong>City</strong></small></p>
-          <button type="button" id="uploadExcelBtn" class="submit-btn">Upload</button>
+          <div class="button-container">
+            <button type="submit">Upload File</button>
+          </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for city information -->
+  <div id="cityModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Shipping Information</h3>
+      <div class="city-name" id="cityDisplay"></div>
+      <div class="modal-buttons">
+        <button class="modal-button" id="confirmBtn">OK</button>
       </div>
     </div>
   </div>
@@ -362,39 +403,25 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    
+    // Sidebar toggle functionality
+    const toggleSidebar = document.querySelector(".toggle-sidebar");
+    const sidebar = document.querySelector(".sidebar");
+    const content = document.querySelector(".content");
+    let sidebarVisible = true;
 
-    // Populate station ID dropdowns
-    function populateStationDropdowns() {
-      const packingStationID = document.getElementById("packingStationID");
-      const dispatchStationID = document.getElementById("dispatchStationID");
-      
-      // Clear existing options except the default one
-      while (packingStationID.options.length > 1) {
-        packingStationID.remove(1);
+    toggleSidebar.addEventListener("click", function() {
+      sidebarVisible = !sidebarVisible;
+      if (sidebarVisible) {
+        sidebar.classList.remove("sidebar-collapsed");
+        content.classList.remove("content-expanded");
+      } else {
+        sidebar.classList.add("sidebar-collapsed");
+        content.classList.add("content-expanded");
       }
-      while (dispatchStationID.options.length > 1) {
-        dispatchStationID.remove(1);
-      }
-      
-      // Add PS01 to PS30 for packing
-      for (let i = 1; i <= 30; i++) {
-        const stationNum = i.toString().padStart(2, '0');
-        const option = document.createElement("option");
-        option.value = `PS${stationNum}`;
-        option.textContent = `PS${stationNum}`;
-        packingStationID.appendChild(option);
-      }
-      
-      // Add DS01 to DS25 for dispatch
-      for (let i = 1; i <= 25; i++) {
-        const stationNum = i.toString().padStart(2, '0');
-        const option = document.createElement("option");
-        option.value = `DS${stationNum}`;
-        option.textContent = `DS${stationNum}`;
-        dispatchStationID.appendChild(option);
-      }
-    }
+    });
 
+    // Tab switching
     function showTab(id, button) {
       document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
       document.querySelectorAll(".sidebar button").forEach(btn => btn.classList.remove("active"));
@@ -402,40 +429,39 @@
       button.classList.add("active");
     }
 
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      const sidebarIcon = document.getElementById("sidebarIcon");
-      const menuTexts = document.querySelectorAll(".menu-text");
-      
-      if (sidebar.classList.contains("sidebar-expanded")) {
-        sidebar.classList.remove("sidebar-expanded");
-        sidebar.classList.add("sidebar-collapsed");
-        sidebarIcon.classList.remove("fa-chevron-left");
-        sidebarIcon.classList.add("fa-chevron-right");
-        menuTexts.forEach(text => text.style.display = "none");
-      } else {
-        sidebar.classList.remove("sidebar-collapsed");
-        sidebar.classList.add("sidebar-expanded");
-        sidebarIcon.classList.remove("fa-chevron-right");
-        sidebarIcon.classList.add("fa-chevron-left");
-        menuTexts.forEach(text => text.style.display = "inline");
+    // Modal functions
+    const modal = document.getElementById("cityModal");
+    const closeModal = document.querySelector(".close-modal");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const cityDisplay = document.getElementById("cityDisplay");
+
+    function showCityModal(city) {
+      cityDisplay.textContent = city;
+      modal.style.display = "block";
+    }
+
+    closeModal.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    confirmBtn.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
       }
     }
 
-    function clearShippingID(formType) {
-      document.getElementById(`${formType}ShippingID`).value = '';
-      document.getElementById(`${formType}ShippingID`).focus();
-    }
-
-    function showPopup(city) {
-      const popup = document.getElementById("cityPopup");
-      const cityText = document.getElementById("popupCityText");
-      cityText.textContent = city;
-      popup.style.display = "flex";
-    }
-
-    function closePopup() {
-      document.getElementById("cityPopup").style.display = "none";
+    // Clear shipping ID fields function
+    function clearShippingId(formId) {
+      const form = document.getElementById(formId);
+      if (formId === "packingForm") {
+        document.getElementById("packingShippingID").value = "";
+      } else if (formId === "dispatchForm") {
+        document.getElementById("dispatchShippingID").value = "";
+      }
     }
 
     // Packing Scan Form
@@ -450,21 +476,24 @@
 
       firebase.database().ref("shipping_metadata/" + shippingID).once("value")
         .then(snapshot => {
-          const cityData = snapshot.val()?.City;
+          const cityData = snapshot.val();
           
-          if (cityData) {
-            const city = cityData.toUpperCase();
-            showPopup(city);
+          if (cityData && cityData.City) {
+            const city = cityData.City.toUpperCase();
+            showCityModal(city); // Show modal with city information
+            
+            db.ref(`packing_scans/${shippingID}`).set({
+              "Station ID": stationID,
+              "NexS ID": nexSID,
+              "DATE": date,
+              "TIME": time,
+            });
+            
+            clearShippingId("packingForm");
+          } else {
+            // If city isn't available, just clear the shipping ID field
+            clearShippingId("packingForm");
           }
-
-          db.ref(`packing_scans/${shippingID}`).set({
-            "Station ID": stationID,
-            "NexS ID": nexSID,
-            "DATE": date,
-            "TIME": time,
-          });
-
-          clearShippingID('packing');
         })
         .catch(error => {
           console.error("Packing Scan Error:", error);
@@ -484,21 +513,24 @@
 
       firebase.database().ref("shipping_metadata/" + shippingID).once("value")
         .then(snapshot => {
-          const cityData = snapshot.val()?.City;
+          const cityData = snapshot.val();
           
-          if (cityData) {
-            const city = cityData.toUpperCase();
-            showPopup(city);
+          if (cityData && cityData.City) {
+            const city = cityData.City.toUpperCase();
+            showCityModal(city); // Show modal with city information
+            
+            db.ref(`dispatch_scans/${shippingID}`).set({
+              "Station ID": stationID,
+              "NexS ID": nexSID,
+              "DATE": date,
+              "TIME": time,
+            });
+            
+            clearShippingId("dispatchForm");
+          } else {
+            // If city isn't available, just clear the shipping ID field
+            clearShippingId("dispatchForm");
           }
-
-          db.ref(`dispatch_scans/${shippingID}`).set({
-            "Station ID": stationID,
-            "NexS ID": nexSID,
-            "DATE": date,
-            "TIME": time,
-          });
-
-          clearShippingID('dispatch');
         })
         .catch(error => {
           console.error("Dispatch Scan Error:", error);
@@ -507,11 +539,13 @@
     });
 
     // Excel Upload
-    document.getElementById("uploadExcelBtn").addEventListener("click", function () {
+    document.getElementById("excelForm").addEventListener("submit", function (e) {
+      e.preventDefault();
       const fileInput = document.getElementById("excelFile");
       const file = fileInput.files[0];
+      
       if (!file) {
-        alert("Please select an Excel file first.");
+        alert("Please select an Excel file first!");
         return;
       }
 
@@ -521,25 +555,20 @@
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet);
-
-        let uploadCount = 0;
+        
+        let count = 0;
         rows.forEach((row) => {
           if (row.ShippingID && row.City) {
             db.ref("shipping_metadata/" + row.ShippingID).set({ City: row.City });
-            uploadCount++;
+            count++;
           }
         });
 
-        alert(`Excel uploaded successfully! ${uploadCount} records processed.`);
-        fileInput.value = '';
+        alert(`Excel uploaded successfully! ${count} shipping records imported.`);
+        fileInput.value = "";
       };
       reader.readAsArrayBuffer(file);
     });
-
-    // Initialize the app
-    window.onload = function() {
-      populateStationDropdowns();
-    };
   </script>
 </body>
 </html>
