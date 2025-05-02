@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NexS Dispatch Dashboard - Enhanced</title>
+  <title>Chotu NexS by ARYA</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -25,7 +25,7 @@
       overflow: hidden;
     }
 
-    /* Header styling */
+    /* Header */
     .header {
       background: #2c3e50;
       color: white;
@@ -56,7 +56,7 @@
       justify-content: center;
     }
 
-    /* Sidebar styling */
+    /* Sidebar */
     .sidebar {
       width: 250px;
       background: #2c3e50;
@@ -111,7 +111,7 @@
       border-left: 4px solid #3498db;
     }
 
-    /* Main content area */
+    /* Content */
     .content {
       flex: 1;
       padding: 40px;
@@ -126,18 +126,17 @@
       margin-left: 0;
     }
 
-    /* Main content area - left side (forms) */
+    /* Content left (forms) */
     .content-left {
       flex: 3;
     }
 
-    /* Main content area - right side (stats) */
+    /* Content right (stats) */
     .content-right {
       flex: 1;
       margin-left: 20px;
     }
 
-    /* Tab display */
     .tab {
       display: none;
       animation: fadeIn 0.3s;
@@ -153,7 +152,6 @@
       flex-direction: column;
     }
 
-    /* Card styling */
     .card {
       background: white;
       max-width: 500px;
@@ -169,7 +167,6 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       margin-top: 20px;
-      margin-bottom: 20px;
     }
 
     .stats-card h3 {
@@ -201,7 +198,6 @@
       font-weight: 600;
     }
 
-    /* Form element styling */
     label {
       display: block;
       margin-bottom: 15px;
@@ -269,7 +265,7 @@
       font-size: 13px;
     }
 
-    /* Modal/Popup styling */
+    /* Modal/Popup */
     .modal {
       display: none;
       position: fixed;
@@ -313,7 +309,6 @@
       text-decoration: none;
     }
 
-    /* City name display in modal */
     .city-name {
       font-size: 24px;
       font-weight: bold;
@@ -339,8 +334,8 @@
     .modal-button:hover {
       background-color: #2980b9;
     }
-    
-    /* Toast notification styling */
+
+    /* Toast notification */
     .toast {
       visibility: hidden;
       position: fixed;
@@ -388,7 +383,7 @@
   <!-- Header -->
   <div class="header">
     <button class="toggle-sidebar">☰</button>
-    <h1>NexS Dispatch Dashboard</h1>
+    <h1>Chotu NexS by ARYA</h1>
   </div>
 
   <!-- Sidebar -->
@@ -408,8 +403,8 @@
           <h2>Packing Scan</h2>
           <form id="packingForm">
             <label>Scan ID:
-              <input type="text" id="packingShippingID" required placeholder="Enter Scan ID (SNXS + 16 digits)" />
-              <small>Format: SNXS followed by 16 digits</small>
+              <input type="text" id="packingShippingID" required placeholder="Enter SNXS + 16 digits" />
+              <small>Format: SNXS followed by 16 digits (e.g., SNXS1250000012421880)</small>
             </label>
             <label>Station ID:
               <select id="packingStationID" required>
@@ -430,7 +425,7 @@
         </div>
       </div>
       
-      <!-- Stats panel on the right -->
+      <!-- Stats panel -->
       <div class="content-right">
         <div class="stats-card">
           <h3>Packing Station Activity</h3>
@@ -448,8 +443,8 @@
           <h2>Dispatch Scan</h2>
           <form id="dispatchForm">
             <label>Scan ID:
-              <input type="text" id="dispatchShippingID" required placeholder="Enter Scan ID" />
-              <small>Note: Cannot use Packing format (SNXS + 16 digits)</small>
+              <input type="text" id="dispatchShippingID" required placeholder="Enter shipping ID" />
+              <small>Cannot use Packing format (SNXS + 16 digits)</small>
             </label>
             <label>Station ID:
               <select id="dispatchStationID" required>
@@ -470,7 +465,7 @@
         </div>
       </div>
       
-      <!-- Stats panel on the right -->
+      <!-- Stats panel -->
       <div class="content-right">
         <div class="stats-card">
           <h3>Dispatch Station Activity</h3>
@@ -908,4 +903,59 @@
                 
                 // Clear only the Scan ID field
                 document.getElementById("dispatchShippingID").value = "";
-                document.getElementById("dispatchShippingID
+                document.getElementById("dispatchShippingID").classList.remove("valid");
+                
+                // Update the scan count
+                updateStationCount("dispatch");
+              });
+            })
+            .catch(error => {
+              console.error("Dispatch Scan Error:", error);
+              showToast("Error processing scan", "error");
+            });
+        })
+        .catch(error => {
+          console.error("Error checking for duplicate:", error);
+          showToast("Error checking for duplicates", "error");
+        });
+    }
+
+    // Update station count when station is changed
+    document.getElementById("dispatchStationID").addEventListener("change", function() {
+      updateStationCount("dispatch");
+    });
+
+    // ===== EXCEL UPLOAD FUNCTIONALITY =====
+    document.getElementById("excelForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const fileInput = document.getElementById("excelFile");
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        showToast("Please select an Excel file first!", "error");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        
+        let count = 0;
+        rows.forEach((row) => {
+          if (row.ShippingID && row.City) {
+            db.ref("shipping_metadata/" + row.ShippingID).set({ City: row.City });
+            count++;
+          }
+        });
+
+        showToast(`Excel uploaded successfully! ${count} shipping records imported.`);
+        fileInput.value = "";
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>
