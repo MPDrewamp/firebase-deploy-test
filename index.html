@@ -771,13 +771,12 @@
       db.ref(`packing_scans/${scanId}`).once("value")
         .then((snapshot) => {
           if (snapshot.exists()) {
-            // Scan already exists, check if at a different station
             const existingData = snapshot.val();
             if (existingData["Station ID"] !== stationId) {
               // Show duplicate warning modal
               showDuplicateModal(scanId, existingData["Station ID"]);
               document.getElementById("packingShippingID").value = "";
-              return; // Stop processing
+              return Promise.reject("Duplicate scan detected"); // Stop further processing
             }
           }
           
@@ -786,43 +785,41 @@
           const date = now.toISOString().split('T')[0];
           const time = now.toLocaleTimeString("en-GB");
 
-          // Check if shipping metadata exists for this ID
-          firebase.database().ref("shipping_metadata/" + scanId).once("value")
-            .then(metaSnapshot => {
-              const cityData = metaSnapshot.val();
-              
-              // Save the scan data
-              db.ref(`packing_scans/${scanId}`).set({
-                "Station ID": stationId,
-                "NexS ID": nexSId,
-                "DATE": date,
-                "TIME": time,
-              }).then(() => {
-                // Show success toast
-                showToast("Packing scan successful");
-                
-                // Show city modal if city data exists
-                if (cityData && cityData.City) {
-                  const city = cityData.City.toUpperCase();
-                  showCityModal(city);
-                }
-                
-                // Clear only the Scan ID field
-                document.getElementById("packingShippingID").value = "";
-                document.getElementById("packingShippingID").classList.remove("valid");
-                
-                // Update the scan count
-                updateStationCount("packing");
-              });
-            })
-            .catch(error => {
-              console.error("Packing Scan Error:", error);
-              showToast("Error processing scan", "error");
-            });
+          // Save the scan data first
+          return db.ref(`packing_scans/${scanId}`).set({
+            "Station ID": stationId,
+            "NexS ID": nexSId,
+            "DATE": date,
+            "TIME": time,
+          }).then(() => {
+            // After successful save, check for city info
+            return firebase.database().ref("shipping_metadata/" + scanId).once("value");
+          });
         })
-        .catch(error => {
-          console.error("Error checking for duplicate:", error);
-          showToast("Error checking for duplicates", "error");
+        .then((metaSnapshot) => {
+          const cityData = metaSnapshot.val();
+          
+          // Show success toast
+          showToast("Packing scan successful");
+          
+          // Show city modal if city data exists
+          if (cityData && cityData.City) {
+            const city = cityData.City.toUpperCase();
+            showCityModal(city);
+          }
+          
+          // Clear only the Scan ID field
+          document.getElementById("packingShippingID").value = "";
+          document.getElementById("packingShippingID").classList.remove("valid");
+          
+          // Update the scan count
+          updateStationCount("packing");
+        })
+        .catch((error) => {
+          if (error !== "Duplicate scan detected") { // Don't show error toast for duplicates
+            console.error("Packing Scan Error:", error);
+            showToast("Error processing scan", "error");
+          }
         });
     }
 
@@ -872,13 +869,12 @@
       db.ref(`dispatch_scans/${scanId}`).once("value")
         .then((snapshot) => {
           if (snapshot.exists()) {
-            // Scan already exists, check if at a different station
             const existingData = snapshot.val();
             if (existingData["Station ID"] !== stationId) {
-              // Show duplicate warning
+              // Show duplicate warning modal
               showDuplicateModal(scanId, existingData["Station ID"]);
               document.getElementById("dispatchShippingID").value = "";
-              return; // Stop processing
+              return Promise.reject("Duplicate scan detected"); // Stop further processing
             }
           }
           
@@ -887,43 +883,41 @@
           const date = now.toISOString().split('T')[0];
           const time = now.toLocaleTimeString("en-GB");
 
-          // Check if shipping metadata exists for this ID
-          firebase.database().ref("shipping_metadata/" + scanId).once("value")
-            .then(metaSnapshot => {
-              const cityData = metaSnapshot.val();
-              
-              // Save the scan data
-              db.ref(`dispatch_scans/${scanId}`).set({
-                "Station ID": stationId,
-                "NexS ID": nexSId,
-                "DATE": date,
-                "TIME": time,
-              }).then(() => {
-                // Show success toast
-                showToast("Dispatch scan successful");
-                
-                // Show city modal if city data exists
-                if (cityData && cityData.City) {
-                  const city = cityData.City.toUpperCase();
-                  showCityModal(city);
-                }
-                
-                // Clear only the Scan ID field
-                document.getElementById("dispatchShippingID").value = "";
-                document.getElementById("dispatchShippingID").classList.remove("valid");
-                
-                // Update the scan count
-                updateStationCount("dispatch");
-              });
-            })
-            .catch(error => {
-              console.error("Dispatch Scan Error:", error);
-              showToast("Error processing scan", "error");
-            });
+          // Save the scan data first
+          return db.ref(`dispatch_scans/${scanId}`).set({
+            "Station ID": stationId,
+            "NexS ID": nexSId,
+            "DATE": date,
+            "TIME": time,
+          }).then(() => {
+            // After successful save, check for city info
+            return firebase.database().ref("shipping_metadata/" + scanId).once("value");
+          });
         })
-        .catch(error => {
-          console.error("Error checking for duplicate:", error);
-          showToast("Error checking for duplicates", "error");
+        .then((metaSnapshot) => {
+          const cityData = metaSnapshot.val();
+          
+          // Show success toast
+          showToast("Dispatch scan successful");
+          
+          // Show city modal if city data exists
+          if (cityData && cityData.City) {
+            const city = cityData.City.toUpperCase();
+            showCityModal(city);
+          }
+          
+          // Clear only the Scan ID field
+          document.getElementById("dispatchShippingID").value = "";
+          document.getElementById("dispatchShippingID").classList.remove("valid");
+          
+          // Update the scan count
+          updateStationCount("dispatch");
+        })
+        .catch((error) => {
+          if (error !== "Duplicate scan detected") { // Don't show error toast for duplicates
+            console.error("Dispatch Scan Error:", error);
+            showToast("Error processing scan", "error");
+          }
         });
     }
 
