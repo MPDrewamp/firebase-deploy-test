@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chotu NexS by ARYA</title>
+  <title>NexS Dispatch Dashboard - Complete</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -25,7 +25,7 @@
       overflow: hidden;
     }
 
-    /* Header */
+    /* Header styling */
     .header {
       background: #2c3e50;
       color: white;
@@ -56,7 +56,7 @@
       justify-content: center;
     }
 
-    /* Sidebar */
+    /* Sidebar styling */
     .sidebar {
       width: 250px;
       background: #2c3e50;
@@ -84,7 +84,6 @@
       color: #3498db;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       margin-bottom: 20px;
-      text-align: center;
     }
 
     .sidebar button {
@@ -112,34 +111,48 @@
       border-left: 4px solid #3498db;
     }
 
-    /* Content */
+    /* Main content area */
     .content {
       flex: 1;
-      padding: 20px;
+      padding: 40px;
       margin-top: 60px;
       margin-left: 250px;
       transition: margin-left 0.3s ease;
       overflow-y: auto;
-      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .content-expanded {
       margin-left: 0;
     }
 
-    /* Center aligned container for forms */
-    .center-container {
+    /* Tab container */
+    .tab-container {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      max-width: 800px;
-      margin: 0 auto;
+      flex: 1;
+      width: 100%;
     }
 
+    /* Main content area - left side (forms) */
+    .content-left {
+      flex: 3;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Main content area - right side (stats) */
+    .content-right {
+      flex: 1;
+      margin-left: 20px;
+      align-self: flex-start; /* Align to top */
+    }
+
+    /* Tab display */
     .tab {
       display: none;
       animation: fadeIn 0.3s;
+      flex: 1;
       width: 100%;
     }
 
@@ -151,80 +164,60 @@
     .tab.active {
       display: flex;
       flex-direction: column;
-      align-items: center;
     }
 
-    /* Card styling with left-aligned text */
+    /* Card styling */
     .card {
       background: white;
-      width: 100%;
-      max-width: 500px;
-      margin: 20px 0;
+      width: 500px;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      text-align: left; /* Left align all text inside card */
     }
 
-    /* Center just the form elements */
-    .card form {
-      text-align: center; /* Center the form contents */
-    }
-
-    /* But keep labels and inputs left-aligned */
-    .card label {
-      display: block;
-      text-align: left;
-      margin-bottom: 15px;
-    }
-
-    .card input[type="text"],
-    .card input[type="file"],
-    .card select {
-      text-align: left; /* Input text left-aligned */
-    }
-
-    /* Stats card - positioned top right */
     .stats-card {
       background: white;
       padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      position: fixed;
-      top: 80px;
-      right: 30px;
-      width: 200px;
-      z-index: 95;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 250px;
     }
 
     .stats-card h3 {
       margin-top: 0;
-      margin-bottom: 10px;
       color: #2c3e50;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
       font-size: 16px;
-      text-align: center;
     }
 
     .stats-number {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
       color: #3498db;
       text-align: center;
-      margin: 10px 0;
+      margin: 15px 0;
     }
 
     .stats-label {
       text-align: center;
       color: #7f8c8d;
-      font-size: 12px;
+      font-size: 13px;
     }
 
     .card h2 {
       margin-top: 0;
       margin-bottom: 20px;
       color: #2c3e50;
+      text-align: center;
       font-weight: 600;
-      text-align: center; /* Keep heading centered */
+    }
+
+    /* Form element styling */
+    label {
+      display: block;
+      margin-bottom: 15px;
+      font-weight: 500;
     }
 
     input[type="text"],
@@ -286,11 +279,9 @@
     small {
       color: #7f8c8d;
       font-size: 13px;
-      display: block;
-      text-align: left; /* Left align helper text */
     }
 
-    /* Modal/Popup */
+    /* Modal/Popup styling */
     .modal {
       display: none;
       position: fixed;
@@ -334,6 +325,7 @@
       text-decoration: none;
     }
 
+    /* City name display in modal */
     .city-name {
       font-size: 24px;
       font-weight: bold;
@@ -360,7 +352,7 @@
       background-color: #2980b9;
     }
     
-    /* Toast notification */
+    /* Toast notification styling */
     .toast {
       visibility: hidden;
       position: fixed;
@@ -401,6 +393,34 @@
       from {opacity: 1;}
       to {opacity: 0;}
     }
+    
+    /* Tray scan result display */
+    .result-display {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+      text-align: center;
+    }
+    
+    .result-display.success {
+      background-color: #e8f8f5;
+      border: 1px solid #1abc9c;
+      display: block;
+    }
+    
+    .result-display.error {
+      background-color: #fdedec;
+      border: 1px solid #e74c3c;
+      display: block;
+    }
+    
+    .result-city {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 10px 0;
+    }
   </style>
 </head>
 
@@ -408,7 +428,7 @@
   <!-- Header -->
   <div class="header">
     <button class="toggle-sidebar">☰</button>
-    <h1>Chotu NexS by ARYA</h1>
+    <h1>NexS Dispatch Dashboard</h1>
   </div>
 
   <!-- Sidebar -->
@@ -416,87 +436,135 @@
     <div class="logo">NexS</div>
     <button class="active" onclick="showTab('packingTab', this)"><i>📦</i> Packing Scans</button>
     <button onclick="showTab('dispatchTab', this)"><i>🚚</i> Dispatch Scans</button>
+    <button onclick="showTab('trayTab', this)"><i>🔍</i> Tray Scans</button>
     <button onclick="showTab('excelTab', this)"><i>📁</i> Excel Upload</button>
   </div>
 
   <!-- Main Content -->
   <div class="content">
-    <!-- Stats panel - top right -->
-    <div class="stats-card" id="activeStatsCard">
-      <h3 id="statsTitle">Station Activity</h3>
-      <div class="stats-number" id="statsCount">0</div>
-      <div class="stats-label">Scans in the last hour</div>
-      <div class="stats-label" id="statsStationName">No station selected</div>
+    <!-- Packing Scan -->
+    <div id="packingTab" class="tab active">
+      <div class="tab-container">
+        <div class="content-left">
+          <div class="card">
+            <h2>Packing Scan</h2>
+            <form id="packingForm">
+              <label>Scan ID:
+                <input type="text" id="packingShippingID" required placeholder="Enter Scan ID (SNXS + 16 digits)" />
+                <small>Format: SNXS followed by 16 digits</small>
+              </label>
+              <label>Station ID:
+                <select id="packingStationID" required>
+                  <option value="" disabled selected>Select packing station</option>
+                  <script>
+                    for (let i = 1; i <= 30; i++) {
+                      const stationId = i < 10 ? `PS0${i}` : `PS${i}`;
+                      document.write(`<option value="${stationId}">${stationId}</option>`);
+                    }
+                  </script>
+                </select>
+              </label>
+              <label>NexS ID:
+                <input type="text" id="packingNexSID" required placeholder="Enter NexS ID" />
+              </label>
+              <!-- Submit button removed as per requirements -->
+            </form>
+          </div>
+        </div>
+        
+        <!-- Stats panel on the right -->
+        <div class="content-right">
+          <div class="stats-card">
+            <h3>Packing Station Activity</h3>
+            <div class="stats-number" id="packingStationCount">0</div>
+            <div class="stats-label">Scans in the last hour</div>
+            <div class="stats-label" id="packingStationName">No station selected</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="center-container">
-      <!-- Packing Scan -->
-      <div id="packingTab" class="tab active">
-        <div class="card">
-          <h2>Packing Scan</h2>
-          <form id="packingForm">
-            <label>Scan ID:
-              <input type="text" id="packingShippingID" required placeholder="Enter SNXS + 16 digits" />
-              <small>Format: SNXS followed by 16 digits (e.g., SNXS1250000012421880)</small>
-            </label>
-            <label>Station ID:
-              <select id="packingStationID" required>
-                <option value="" disabled selected>Select packing station</option>
-                <script>
-                  for (let i = 1; i <= 30; i++) {
-                    const stationId = i < 10 ? `PS0${i}` : `PS${i}`;
-                    document.write(`<option value="${stationId}">${stationId}</option>`);
-                  }
-                </script>
-              </select>
-            </label>
-            <label>NexS ID:
-              <input type="text" id="packingNexSID" required placeholder="Enter NexS ID" />
-            </label>
-          </form>
+    <!-- Dispatch Scan -->
+    <div id="dispatchTab" class="tab">
+      <div class="tab-container">
+        <div class="content-left">
+          <div class="card">
+            <h2>Dispatch Scan</h2>
+            <form id="dispatchForm">
+              <label>Scan ID:
+                <input type="text" id="dispatchShippingID" required placeholder="Enter Scan ID" />
+                <small>Note: Cannot use Packing format (SNXS + 16 digits)</small>
+              </label>
+              <label>Station ID:
+                <select id="dispatchStationID" required>
+                  <option value="" disabled selected>Select dispatch station</option>
+                  <script>
+                    for (let i = 1; i <= 25; i++) {
+                      const stationId = i < 10 ? `DS0${i}` : `DS${i}`;
+                      document.write(`<option value="${stationId}">${stationId}</option>`);
+                    }
+                  </script>
+                </select>
+              </label>
+              <label>NexS ID:
+                <input type="text" id="dispatchNexSID" required placeholder="Enter NexS ID" />
+              </label>
+              <!-- Submit button removed as per requirements -->
+            </form>
+          </div>
+        </div>
+        
+        <!-- Stats panel on the right -->
+        <div class="content-right">
+          <div class="stats-card">
+            <h3>Dispatch Station Activity</h3>
+            <div class="stats-number" id="dispatchStationCount">0</div>
+            <div class="stats-label">Scans in the last hour</div>
+            <div class="stats-label" id="dispatchStationName">No station selected</div>
+          </div>
         </div>
       </div>
-
-      <!-- Dispatch Scan -->
-      <div id="dispatchTab" class="tab">
-        <div class="card">
-          <h2>Dispatch Scan</h2>
-          <form id="dispatchForm">
-            <label>Scan ID:
-              <input type="text" id="dispatchShippingID" required placeholder="Enter shipping ID" />
-              <small>Cannot use Packing format (SNXS + 16 digits)</small>
-            </label>
-            <label>Station ID:
-              <select id="dispatchStationID" required>
-                <option value="" disabled selected>Select dispatch station</option>
-                <script>
-                  for (let i = 1; i <= 25; i++) {
-                    const stationId = i < 10 ? `DS0${i}` : `DS${i}`;
-                    document.write(`<option value="${stationId}">${stationId}</option>`);
-                  }
-                </script>
-              </select>
-            </label>
-            <label>NexS ID:
-              <input type="text" id="dispatchNexSID" required placeholder="Enter NexS ID" />
-            </label>
-          </form>
-        </div>
-      </div>
-
-      <!-- Excel Upload -->
-      <div id="excelTab" class="tab">
-        <div class="card">
-          <h2>Upload Excel File</h2>
-          <form id="excelForm">
-            <label>Upload Excel:
-              <input type="file" id="excelFile" accept=".xlsx, .xls" />
-            </label>
-            <p><small>Expected columns: <strong>ShippingID</strong> and <strong>City</strong></small></p>
-            <div class="button-container">
-              <button type="submit">Upload File</button>
+    </div>
+    
+    <!-- Tray Scan -->
+    <div id="trayTab" class="tab">
+      <div class="tab-container">
+        <div class="content-left">
+          <div class="card">
+            <h2>Tray Scan</h2>
+            <form id="trayForm">
+              <label>Tray ID:
+                <input type="text" id="trayID" required placeholder="Enter Tray ID" />
+                <small>Scan or enter a Tray ID to validate</small>
+              </label>
+            </form>
+            
+            <!-- Result display for Tray scan -->
+            <div id="trayResult" class="result-display">
+              <h3>Tray Information</h3>
+              <div class="result-city" id="trayCityDisplay"></div>
             </div>
-          </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Excel Upload -->
+    <div id="excelTab" class="tab">
+      <div class="tab-container">
+        <div class="content-left">
+          <div class="card">
+            <h2>Upload Excel File</h2>
+            <form id="excelForm">
+              <label>Upload Excel:
+                <input type="file" id="excelFile" accept=".xlsx, .xls" />
+              </label>
+              <p><small>Expected columns: <strong>ShippingID</strong> and <strong>City</strong></small></p>
+              <div class="button-container">
+                <button type="submit">Upload File</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -508,6 +576,7 @@
       <span class="close-modal">&times;</span>
       <h3>Shipping Information</h3>
       <div class="city-name" id="cityDisplay"></div>
+      <!-- OK button removed as requested -->
     </div>
   </div>
 
@@ -571,16 +640,14 @@
       document.getElementById(id).classList.add("active");
       button.classList.add("active");
       
-      // Update stats title based on active tab
-      const statsTitle = document.getElementById("statsTitle");
+      // Update station counts when switching tabs
       if (id === "packingTab") {
-        statsTitle.textContent = "Packing Activity";
         updateStationCount("packing");
       } else if (id === "dispatchTab") {
-        statsTitle.textContent = "Dispatch Activity";
         updateStationCount("dispatch");
-      } else {
-        statsTitle.textContent = "Station Activity";
+      } else if (id === "trayTab") {
+        // Clear tray results when switching to tray tab
+        clearTrayResults();
       }
     }
 
@@ -658,13 +725,17 @@
     // Update station scan count 
     function updateStationCount(scanType) {
       let stationId;
-      let stationNameElement = document.getElementById("statsStationName");
-      let countElement = document.getElementById("statsCount");
+      let stationNameElement;
+      let countElement;
       
       if (scanType === "packing") {
         stationId = document.getElementById("packingStationID").value;
+        stationNameElement = document.getElementById("packingStationName");
+        countElement = document.getElementById("packingStationCount");
       } else {
         stationId = document.getElementById("dispatchStationID").value;
+        stationNameElement = document.getElementById("dispatchStationName");
+        countElement = document.getElementById("dispatchStationCount");
       }
       
       // If no station selected, don't try to count
@@ -767,59 +838,67 @@
 
     // Process Packing Scan
     function processPacking(scanId, stationId, nexSId) {
+      // Get current date and time
+      const now = new Date();
+      const date = now.toISOString().split('T')[0];
+      const time = now.toLocaleTimeString("en-GB");
+      
+      // Prepare the scan data
+      const scanData = {
+        "Station ID": stationId,
+        "NexS ID": nexSId,
+        "DATE": date,
+        "TIME": time,
+      };
+      
       // First check if this scan ID has already been processed
       db.ref(`packing_scans/${scanId}`).once("value")
         .then((snapshot) => {
+          let isDuplicate = false;
+          
           if (snapshot.exists()) {
+            // Scan already exists, check if at a different station
             const existingData = snapshot.val();
             if (existingData["Station ID"] !== stationId) {
+              isDuplicate = true;
               // Show duplicate warning modal
               showDuplicateModal(scanId, existingData["Station ID"]);
-              document.getElementById("packingShippingID").value = "";
-              return Promise.reject("Duplicate scan detected"); // Stop further processing
             }
           }
           
-          // Continue with normal processing
-          const now = new Date();
-          const date = now.toISOString().split('T')[0];
-          const time = now.toLocaleTimeString("en-GB");
-
-          // Save the scan data first
-          return db.ref(`packing_scans/${scanId}`).set({
-            "Station ID": stationId,
-            "NexS ID": nexSId,
-            "DATE": date,
-            "TIME": time,
-          }).then(() => {
-            // After successful save, check for city info
-            return firebase.database().ref("shipping_metadata/" + scanId).once("value");
+          // Always save the scan data regardless of duplicate status - this fixes the issue
+          db.ref(`packing_scans/${scanId}`).set(scanData).then(() => {
+            // If not a duplicate, show success message
+            if (!isDuplicate) {
+              showToast("Packing scan successful");
+            }
+            
+            // Check if shipping metadata exists for this ID
+            firebase.database().ref("shipping_metadata/" + scanId).once("value")
+              .then(metaSnapshot => {
+                const cityData = metaSnapshot.val();
+                
+                // Show city modal if city data exists and not a duplicate
+                if (cityData && cityData.City && !isDuplicate) {
+                  const city = cityData.City.toUpperCase();
+                  showCityModal(city);
+                }
+                
+                // Always clear the Scan ID field
+                document.getElementById("packingShippingID").value = "";
+                document.getElementById("packingShippingID").classList.remove("valid");
+                
+                // Update the scan count
+                updateStationCount("packing");
+              });
+          }).catch(error => {
+            console.error("Error saving scan:", error);
+            showToast("Error saving scan data", "error");
           });
         })
-        .then((metaSnapshot) => {
-          const cityData = metaSnapshot.val();
-          
-          // Show success toast
-          showToast("Packing scan successful");
-          
-          // Show city modal if city data exists
-          if (cityData && cityData.City) {
-            const city = cityData.City.toUpperCase();
-            showCityModal(city);
-          }
-          
-          // Clear only the Scan ID field
-          document.getElementById("packingShippingID").value = "";
-          document.getElementById("packingShippingID").classList.remove("valid");
-          
-          // Update the scan count
-          updateStationCount("packing");
-        })
-        .catch((error) => {
-          if (error !== "Duplicate scan detected") { // Don't show error toast for duplicates
-            console.error("Packing Scan Error:", error);
-            showToast("Error processing scan", "error");
-          }
+        .catch(error => {
+          console.error("Error checking for duplicate:", error);
+          showToast("Error checking for duplicates", "error");
         });
     }
 
@@ -828,6 +907,61 @@
       updateStationCount("packing");
     });
 
+    // ===== TRAY SCAN FUNCTIONALITY =====
+    
+    // Clear tray results display
+    function clearTrayResults() {
+      const trayResult = document.getElementById("trayResult");
+      trayResult.style.display = "none";
+      trayResult.className = "result-display";
+      document.getElementById("trayCityDisplay").textContent = "";
+      document.getElementById("trayID").value = "";
+    }
+
+    // Listen for input in the tray ID field
+    document.getElementById("trayID").addEventListener("input", function() {
+      const trayId = this.value.trim().toUpperCase();
+      
+      // Only process if we have enough characters (minimum 3)
+      if (trayId.length >= 3) {
+        validateTrayId(trayId);
+      }
+    });
+
+    // Validate Tray ID against shipping_metadata
+    function validateTrayId(trayId) {
+      const trayResult = document.getElementById("trayResult");
+      const trayCityDisplay = document.getElementById("trayCityDisplay");
+      
+      // Check shipping metadata
+      db.ref(`shipping_metadata/${trayId}`).once("value")
+        .then(snapshot => {
+          if (snapshot.exists() && snapshot.val().City) {
+            // Valid tray found
+            const city = snapshot.val().City.toUpperCase();
+            trayCityDisplay.textContent = city;
+            trayResult.className = "result-display success";
+            trayResult.style.display = "block";
+            showToast(`Valid tray: ${city}`, "success");
+          } else {
+            // Tray not found
+            trayCityDisplay.textContent = "NOT FOUND";
+            trayResult.className = "result-display error";
+            trayResult.style.display = "block";
+            showToast("Tray ID not in database", "error");
+          }
+          
+          // Clear input after short delay for next scan
+          setTimeout(() => {
+            document.getElementById("trayID").value = "";
+          }, 500);
+        })
+        .catch(error => {
+          console.error("Tray validation error:", error);
+          showToast("Error validating tray", "error");
+        });
+    }
+
     // ===== DISPATCH SCAN FUNCTIONALITY =====
     
     // Listen for input in the dispatch shipping ID field
@@ -835,16 +969,8 @@
       const scanId = this.value.trim().toUpperCase();
       this.value = scanId; // Convert to uppercase as they type
       
-      // Check if the scan ID is in packing format (should be rejected)
-      if (isPackingFormat(scanId)) {
-        this.classList.add("invalid");
-        this.classList.remove("valid");
-        showToast("Invalid format for dispatch - cannot use packing format", "error");
-        return;
-      }
-      
-      // Basic validation - just ensure it's not empty
-      if (scanId.length > 0) {
+      // Validate the scan ID format (must NOT be packing format)
+      if (scanId.length > 0 && !isPackingFormat(scanId)) {
         this.classList.add("valid");
         this.classList.remove("invalid");
         
@@ -857,67 +983,79 @@
           processDispatch(scanId, stationID, nexSID);
         }
       } else {
-        // Clear styling if empty
-        this.classList.remove("valid");
-        this.classList.remove("invalid");
+        // Mark as invalid if format is wrong
+        if (scanId.length > 0) {
+          this.classList.add("invalid");
+          this.classList.remove("valid");
+        } else {
+          // Clear styling if empty
+          this.classList.remove("valid");
+          this.classList.remove("invalid");
+        }
       }
     });
 
-    // Process Dispatch Scan
+    // Process Dispatch Scan with enhanced duplicate handling
     function processDispatch(scanId, stationId, nexSId) {
+      // Get current date and time
+      const now = new Date();
+      const date = now.toISOString().split('T')[0];
+      const time = now.toLocaleTimeString("en-GB");
+      
+      // Prepare the scan data
+      const scanData = {
+        "Station ID": stationId,
+        "NexS ID": nexSId,
+        "DATE": date,
+        "TIME": time,
+      };
+      
       // First check if this scan ID has already been processed
       db.ref(`dispatch_scans/${scanId}`).once("value")
         .then((snapshot) => {
+          let isDuplicate = false;
+          
           if (snapshot.exists()) {
+            // Scan already exists, check if at a different station
             const existingData = snapshot.val();
-            if (existingData["Station ID"] !== stationId) {
-              // Show duplicate warning modal
-              showDuplicateModal(scanId, existingData["Station ID"]);
-              document.getElementById("dispatchShippingID").value = "";
-              return Promise.reject("Duplicate scan detected"); // Stop further processing
-            }
+            isDuplicate = true;
+            // Show duplicate warning modal (even for same station)
+            showDuplicateModal(scanId, existingData["Station ID"]);
           }
           
-          // Continue with normal processing
-          const now = new Date();
-          const date = now.toISOString().split('T')[0];
-          const time = now.toLocaleTimeString("en-GB");
-
-          // Save the scan data first
-          return db.ref(`dispatch_scans/${scanId}`).set({
-            "Station ID": stationId,
-            "NexS ID": nexSId,
-            "DATE": date,
-            "TIME": time,
-          }).then(() => {
-            // After successful save, check for city info
-            return firebase.database().ref("shipping_metadata/" + scanId).once("value");
+          // Always save the scan data regardless of duplicate status
+          db.ref(`dispatch_scans/${scanId}`).set(scanData).then(() => {
+            // If not a duplicate, show success message
+            if (!isDuplicate) {
+              showToast("Dispatch scan successful");
+            }
+            
+            // Check if shipping metadata exists for this ID
+            firebase.database().ref("shipping_metadata/" + scanId).once("value")
+              .then(metaSnapshot => {
+                const cityData = metaSnapshot.val();
+                
+                // Show city modal if city data exists and not a duplicate
+                if (cityData && cityData.City && !isDuplicate) {
+                  const city = cityData.City.toUpperCase();
+                  showCityModal(city);
+                }
+                
+                // Always clear the Scan ID field
+                document.getElementById("dispatchShippingID").value = "";
+                document.getElementById("dispatchShippingID").classList.remove("valid");
+                
+                // Update the scan count
+                updateStationCount("dispatch");
+              });
+          }).catch(error => {
+            console.error("Error saving scan:", error);
+            showToast("Error saving scan data", "error");
           });
         })
-        .then((metaSnapshot) => {
-          const cityData = metaSnapshot.val();
-          
-          // Show success toast
-          showToast("Dispatch scan successful");
-          
-          // Show city modal if city data exists
-          if (cityData && cityData.City) {
-            const city = cityData.City.toUpperCase();
-            showCityModal(city);
-          }
-          
-          // Clear only the Scan ID field
-          document.getElementById("dispatchShippingID").value = "";
-          document.getElementById("dispatchShippingID").classList.remove("valid");
-          
-          // Update the scan count
-          updateStationCount("dispatch");
-        })
-        .catch((error) => {
-          if (error !== "Duplicate scan detected") { // Don't show error toast for duplicates
-            console.error("Dispatch Scan Error:", error);
-            showToast("Error processing scan", "error");
-          }
+        .catch(error => {
+          console.error("Error checking for duplicate:", error);
+          showToast("Error checking for duplicates", "error");
         });
     }
 
@@ -945,18 +1083,38 @@
         const rows = XLSX.utils.sheet_to_json(sheet);
         
         let count = 0;
+        const updates = {};
+        
         rows.forEach((row) => {
           if (row.ShippingID && row.City) {
-            db.ref("shipping_metadata/" + row.ShippingID).set({ City: row.City });
+            updates[`shipping_metadata/${row.ShippingID}`] = { City: row.City };
             count++;
           }
         });
 
-        showToast(`Excel uploaded successfully! ${count} shipping records imported.`);
-        fileInput.value = "";
+        db.ref().update(updates)
+          .then(() => {
+            showToast(`Excel uploaded successfully! ${count} shipping records imported.`);
+            fileInput.value = "";
+          })
+          .catch(error => {
+            console.error("Upload error:", error);
+            showToast("Error uploading data", "error");
+          });
       };
       reader.readAsArrayBuffer(file);
     });
+
+    // Initialize on page load
+    window.onload = function() {
+      setupCountRefresh();
+      // Focus on tray input when tray tab is active
+      document.getElementById("trayTab").addEventListener("click", function() {
+        setTimeout(() => {
+          document.getElementById("trayID").focus();
+        }, 100);
+      });
+    };
   </script>
 </body>
 </html>
