@@ -963,38 +963,46 @@
     }
 
     // ===== DISPATCH SCAN FUNCTIONALITY =====
-    
+
     // Listen for input in the dispatch shipping ID field
     document.getElementById("dispatchShippingID").addEventListener("input", function() {
-      const scanId = this.value.trim().toUpperCase();
-      this.value = scanId; // Convert to uppercase as they type
+      const inputField = this;
+      const scanId = inputField.value.trim().toUpperCase();
+      inputField.value = scanId; // Convert to uppercase as they type
       
-      // Validate the scan ID format (must NOT be packing format)
-      if (scanId.length > 0 && !isPackingFormat(scanId)) {
-        this.classList.add("valid");
-        this.classList.remove("invalid");
-        
-        // Check if all required fields are filled
-        const stationID = document.getElementById("dispatchStationID").value;
-        const nexSID = document.getElementById("dispatchNexSID").value.trim();
-        
-        if (stationID && nexSID) {
-          // Auto-submit the form if all fields are valid
-          processDispatch(scanId, stationID, nexSID);
-        }
-      } else {
-        // Mark as invalid if format is wrong
-        if (scanId.length > 0) {
-          this.classList.add("invalid");
-          this.classList.remove("valid");
-        } else {
-          // Clear styling if empty
-          this.classList.remove("valid");
-          this.classList.remove("invalid");
-        }
+      // Clear any existing timeout to prevent multiple triggers
+      if (inputField.scanTimeout) {
+        clearTimeout(inputField.scanTimeout);
       }
+      
+      // Set a new timeout to wait for barcode completion
+      inputField.scanTimeout = setTimeout(() => {
+        // Validate the scan ID format (must NOT be packing format)
+        if (scanId.length > 8 && !isPackingFormat(scanId)) {
+          inputField.classList.add("valid");
+          inputField.classList.remove("invalid");
+          
+          // Check if all required fields are filled
+          const stationID = document.getElementById("dispatchStationID").value;
+          const nexSID = document.getElementById("dispatchNexSID").value.trim();
+          
+          if (stationID && nexSID) {
+            // Process the scan after the full barcode is captured
+            processDispatch(scanId, stationID, nexSID);
+          }
+        } else {
+          // Mark as invalid if format is wrong
+          if (scanId.length > 8) {
+            inputField.classList.add("invalid");
+            inputField.classList.remove("valid");
+          } else {
+            // Clear styling if empty
+            inputField.classList.remove("valid");
+            inputField.classList.remove("invalid");
+          }
+        }
+      }, 150); // Wait 150ms after last input before processing
     });
-
     // Process Dispatch Scan with enhanced duplicate handling
     function processDispatch(scanId, stationId, nexSId) {
       // Get current date and time
