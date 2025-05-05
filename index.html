@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NexS Dispatch Dashboard - Enhanced</title>
+  <title>Chotu NexS by ARYA</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -25,7 +25,7 @@
       overflow: hidden;
     }
 
-    /* Header styling */
+    /* Header */
     .header {
       background: #2c3e50;
       color: white;
@@ -56,7 +56,7 @@
       justify-content: center;
     }
 
-    /* Sidebar styling */
+    /* Sidebar */
     .sidebar {
       width: 250px;
       background: #2c3e50;
@@ -84,6 +84,7 @@
       color: #3498db;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .sidebar button {
@@ -111,36 +112,35 @@
       border-left: 4px solid #3498db;
     }
 
-    /* Main content area */
+    /* Content */
     .content {
       flex: 1;
-      padding: 40px;
+      padding: 20px;
       margin-top: 60px;
       margin-left: 250px;
       transition: margin-left 0.3s ease;
       overflow-y: auto;
-      display: flex;
+      position: relative;
     }
 
     .content-expanded {
       margin-left: 0;
     }
 
-    /* Main content area - left side (forms) */
-    .content-left {
-      flex: 3;
+    /* Center aligned container for forms */
+    .center-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
-    /* Main content area - right side (stats) */
-    .content-right {
-      flex: 1;
-      margin-left: 20px;
-    }
-
-    /* Tab display */
     .tab {
       display: none;
       animation: fadeIn 0.3s;
+      width: 100%;
     }
 
     @keyframes fadeIn {
@@ -151,61 +151,80 @@
     .tab.active {
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
 
-    /* Card styling */
+    /* Card styling with left-aligned text */
     .card {
       background: white;
+      width: 100%;
       max-width: 500px;
-      margin: 20px auto;
+      margin: 20px 0;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: left; /* Left align all text inside card */
     }
 
+    /* Center just the form elements */
+    .card form {
+      text-align: center; /* Center the form contents */
+    }
+
+    /* But keep labels and inputs left-aligned */
+    .card label {
+      display: block;
+      text-align: left;
+      margin-bottom: 15px;
+    }
+
+    .card input[type="text"],
+    .card input[type="file"],
+    .card select {
+      text-align: left; /* Input text left-aligned */
+    }
+
+    /* Stats card - positioned top right */
     .stats-card {
       background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
-      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 80px;
+      right: 30px;
+      width: 200px;
+      z-index: 95;
     }
 
     .stats-card h3 {
       margin-top: 0;
+      margin-bottom: 10px;
       color: #2c3e50;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
+      font-size: 16px;
+      text-align: center;
     }
 
     .stats-number {
-      font-size: 32px;
+      font-size: 24px;
       font-weight: bold;
       color: #3498db;
       text-align: center;
-      margin: 20px 0;
+      margin: 10px 0;
     }
 
     .stats-label {
       text-align: center;
       color: #7f8c8d;
-      font-size: 14px;
+      font-size: 12px;
     }
 
     .card h2 {
       margin-top: 0;
       margin-bottom: 20px;
       color: #2c3e50;
-      text-align: center;
       font-weight: 600;
-    }
-
-    /* Form element styling */
-    label {
-      display: block;
-      margin-bottom: 15px;
-      font-weight: 500;
+      text-align: center; /* Keep heading centered */
     }
 
     input[type="text"],
@@ -267,9 +286,11 @@
     small {
       color: #7f8c8d;
       font-size: 13px;
+      display: block;
+      text-align: left; /* Left align helper text */
     }
 
-    /* Modal/Popup styling */
+    /* Modal/Popup */
     .modal {
       display: none;
       position: fixed;
@@ -313,7 +334,6 @@
       text-decoration: none;
     }
 
-    /* City name display in modal */
     .city-name {
       font-size: 24px;
       font-weight: bold;
@@ -340,7 +360,7 @@
       background-color: #2980b9;
     }
     
-    /* Toast notification styling */
+    /* Toast notification */
     .toast {
       visibility: hidden;
       position: fixed;
@@ -388,7 +408,7 @@
   <!-- Header -->
   <div class="header">
     <button class="toggle-sidebar">☰</button>
-    <h1>NexS Dispatch Dashboard</h1>
+    <h1>Chotu NexS by ARYA</h1>
   </div>
 
   <!-- Sidebar -->
@@ -401,15 +421,23 @@
 
   <!-- Main Content -->
   <div class="content">
-    <!-- Packing Scan -->
-    <div id="packingTab" class="tab active">
-      <div class="content-left">
+    <!-- Stats panel - top right -->
+    <div class="stats-card" id="activeStatsCard">
+      <h3 id="statsTitle">Station Activity</h3>
+      <div class="stats-number" id="statsCount">0</div>
+      <div class="stats-label">Scans in the last hour</div>
+      <div class="stats-label" id="statsStationName">No station selected</div>
+    </div>
+
+    <div class="center-container">
+      <!-- Packing Scan -->
+      <div id="packingTab" class="tab active">
         <div class="card">
           <h2>Packing Scan</h2>
           <form id="packingForm">
             <label>Scan ID:
-              <input type="text" id="packingShippingID" required placeholder="Enter Scan ID (SNXS + 16 digits)" />
-              <small>Format: SNXS followed by 16 digits</small>
+              <input type="text" id="packingShippingID" required placeholder="Enter SNXS + 16 digits" />
+              <small>Format: SNXS followed by 16 digits (e.g., SNXS1250000012421880)</small>
             </label>
             <label>Station ID:
               <select id="packingStationID" required>
@@ -425,31 +453,18 @@
             <label>NexS ID:
               <input type="text" id="packingNexSID" required placeholder="Enter NexS ID" />
             </label>
-            <!-- Submit button removed as per requirements -->
           </form>
         </div>
       </div>
-      
-      <!-- Stats panel on the right -->
-      <div class="content-right">
-        <div class="stats-card">
-          <h3>Packing Station Activity</h3>
-          <div class="stats-number" id="packingStationCount">0</div>
-          <div class="stats-label">Scans in the last hour</div>
-          <div class="stats-label" id="packingStationName">No station selected</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Dispatch Scan -->
-    <div id="dispatchTab" class="tab">
-      <div class="content-left">
+      <!-- Dispatch Scan -->
+      <div id="dispatchTab" class="tab">
         <div class="card">
           <h2>Dispatch Scan</h2>
           <form id="dispatchForm">
             <label>Scan ID:
-              <input type="text" id="dispatchShippingID" required placeholder="Enter Scan ID" />
-              <small>Note: Cannot use Packing format (SNXS + 16 digits)</small>
+              <input type="text" id="dispatchShippingID" required placeholder="Enter shipping ID" />
+              <small>Cannot use Packing format (SNXS + 16 digits)</small>
             </label>
             <label>Station ID:
               <select id="dispatchStationID" required>
@@ -465,25 +480,12 @@
             <label>NexS ID:
               <input type="text" id="dispatchNexSID" required placeholder="Enter NexS ID" />
             </label>
-            <!-- Submit button removed as per requirements -->
           </form>
         </div>
       </div>
-      
-      <!-- Stats panel on the right -->
-      <div class="content-right">
-        <div class="stats-card">
-          <h3>Dispatch Station Activity</h3>
-          <div class="stats-number" id="dispatchStationCount">0</div>
-          <div class="stats-label">Scans in the last hour</div>
-          <div class="stats-label" id="dispatchStationName">No station selected</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Excel Upload -->
-    <div id="excelTab" class="tab">
-      <div class="content-left">
+      <!-- Excel Upload -->
+      <div id="excelTab" class="tab">
         <div class="card">
           <h2>Upload Excel File</h2>
           <form id="excelForm">
@@ -506,7 +508,6 @@
       <span class="close-modal">&times;</span>
       <h3>Shipping Information</h3>
       <div class="city-name" id="cityDisplay"></div>
-      <!-- OK button removed as requested -->
     </div>
   </div>
 
@@ -570,11 +571,16 @@
       document.getElementById(id).classList.add("active");
       button.classList.add("active");
       
-      // Update station counts when switching tabs
+      // Update stats title based on active tab
+      const statsTitle = document.getElementById("statsTitle");
       if (id === "packingTab") {
+        statsTitle.textContent = "Packing Activity";
         updateStationCount("packing");
       } else if (id === "dispatchTab") {
+        statsTitle.textContent = "Dispatch Activity";
         updateStationCount("dispatch");
+      } else {
+        statsTitle.textContent = "Station Activity";
       }
     }
 
@@ -652,17 +658,13 @@
     // Update station scan count 
     function updateStationCount(scanType) {
       let stationId;
-      let stationNameElement;
-      let countElement;
+      let stationNameElement = document.getElementById("statsStationName");
+      let countElement = document.getElementById("statsCount");
       
       if (scanType === "packing") {
         stationId = document.getElementById("packingStationID").value;
-        stationNameElement = document.getElementById("packingStationName");
-        countElement = document.getElementById("packingStationCount");
       } else {
         stationId = document.getElementById("dispatchStationID").value;
-        stationNameElement = document.getElementById("dispatchStationName");
-        countElement = document.getElementById("dispatchStationCount");
       }
       
       // If no station selected, don't try to count
@@ -769,13 +771,12 @@
       db.ref(`packing_scans/${scanId}`).once("value")
         .then((snapshot) => {
           if (snapshot.exists()) {
-            // Scan already exists, check if at a different station
             const existingData = snapshot.val();
             if (existingData["Station ID"] !== stationId) {
               // Show duplicate warning modal
               showDuplicateModal(scanId, existingData["Station ID"]);
               document.getElementById("packingShippingID").value = "";
-              return; // Stop processing
+              return Promise.reject("Duplicate scan detected"); // Stop further processing
             }
           }
           
@@ -784,43 +785,41 @@
           const date = now.toISOString().split('T')[0];
           const time = now.toLocaleTimeString("en-GB");
 
-          // Check if shipping metadata exists for this ID
-          firebase.database().ref("shipping_metadata/" + scanId).once("value")
-            .then(metaSnapshot => {
-              const cityData = metaSnapshot.val();
-              
-              // Save the scan data
-              db.ref(`packing_scans/${scanId}`).set({
-                "Station ID": stationId,
-                "NexS ID": nexSId,
-                "DATE": date,
-                "TIME": time,
-              }).then(() => {
-                // Show success toast
-                showToast("Packing scan successful");
-                
-                // Show city modal if city data exists
-                if (cityData && cityData.City) {
-                  const city = cityData.City.toUpperCase();
-                  showCityModal(city);
-                }
-                
-                // Clear only the Scan ID field
-                document.getElementById("packingShippingID").value = "";
-                document.getElementById("packingShippingID").classList.remove("valid");
-                
-                // Update the scan count
-                updateStationCount("packing");
-              });
-            })
-            .catch(error => {
-              console.error("Packing Scan Error:", error);
-              showToast("Error processing scan", "error");
-            });
+          // Save the scan data first
+          return db.ref(`packing_scans/${scanId}`).set({
+            "Station ID": stationId,
+            "NexS ID": nexSId,
+            "DATE": date,
+            "TIME": time,
+          }).then(() => {
+            // After successful save, check for city info
+            return firebase.database().ref("shipping_metadata/" + scanId).once("value");
+          });
         })
-        .catch(error => {
-          console.error("Error checking for duplicate:", error);
-          showToast("Error checking for duplicates", "error");
+        .then((metaSnapshot) => {
+          const cityData = metaSnapshot.val();
+          
+          // Show success toast
+          showToast("Packing scan successful");
+          
+          // Show city modal if city data exists
+          if (cityData && cityData.City) {
+            const city = cityData.City.toUpperCase();
+            showCityModal(city);
+          }
+          
+          // Clear only the Scan ID field
+          document.getElementById("packingShippingID").value = "";
+          document.getElementById("packingShippingID").classList.remove("valid");
+          
+          // Update the scan count
+          updateStationCount("packing");
+        })
+        .catch((error) => {
+          if (error !== "Duplicate scan detected") { // Don't show error toast for duplicates
+            console.error("Packing Scan Error:", error);
+            showToast("Error processing scan", "error");
+          }
         });
     }
 
@@ -870,13 +869,12 @@
       db.ref(`dispatch_scans/${scanId}`).once("value")
         .then((snapshot) => {
           if (snapshot.exists()) {
-            // Scan already exists, check if at a different station
             const existingData = snapshot.val();
             if (existingData["Station ID"] !== stationId) {
-              // Show duplicate warning
+              // Show duplicate warning modal
               showDuplicateModal(scanId, existingData["Station ID"]);
               document.getElementById("dispatchShippingID").value = "";
-              return; // Stop processing
+              return Promise.reject("Duplicate scan detected"); // Stop further processing
             }
           }
           
@@ -885,27 +883,80 @@
           const date = now.toISOString().split('T')[0];
           const time = now.toLocaleTimeString("en-GB");
 
-          // Check if shipping metadata exists for this ID
-          firebase.database().ref("shipping_metadata/" + scanId).once("value")
-            .then(metaSnapshot => {
-              const cityData = metaSnapshot.val();
-              
-              // Save the scan data
-              db.ref(`dispatch_scans/${scanId}`).set({
-                "Station ID": stationId,
-                "NexS ID": nexSId,
-                "DATE": date,
-                "TIME": time,
-              }).then(() => {
-                // Show success toast
-                showToast("Dispatch scan successful");
-                
-                // Show city modal if city data exists
-                if (cityData && cityData.City) {
-                  const city = cityData.City.toUpperCase();
-                  showCityModal(city);
-                }
-                
-                // Clear only the Scan ID field
-                document.getElementById("dispatchShippingID").value = "";
-                document.getElementById("dispatchShippingID
+          // Save the scan data first
+          return db.ref(`dispatch_scans/${scanId}`).set({
+            "Station ID": stationId,
+            "NexS ID": nexSId,
+            "DATE": date,
+            "TIME": time,
+          }).then(() => {
+            // After successful save, check for city info
+            return firebase.database().ref("shipping_metadata/" + scanId).once("value");
+          });
+        })
+        .then((metaSnapshot) => {
+          const cityData = metaSnapshot.val();
+          
+          // Show success toast
+          showToast("Dispatch scan successful");
+          
+          // Show city modal if city data exists
+          if (cityData && cityData.City) {
+            const city = cityData.City.toUpperCase();
+            showCityModal(city);
+          }
+          
+          // Clear only the Scan ID field
+          document.getElementById("dispatchShippingID").value = "";
+          document.getElementById("dispatchShippingID").classList.remove("valid");
+          
+          // Update the scan count
+          updateStationCount("dispatch");
+        })
+        .catch((error) => {
+          if (error !== "Duplicate scan detected") { // Don't show error toast for duplicates
+            console.error("Dispatch Scan Error:", error);
+            showToast("Error processing scan", "error");
+          }
+        });
+    }
+
+    // Update station count when station is changed
+    document.getElementById("dispatchStationID").addEventListener("change", function() {
+      updateStationCount("dispatch");
+    });
+
+    // ===== EXCEL UPLOAD FUNCTIONALITY =====
+    document.getElementById("excelForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const fileInput = document.getElementById("excelFile");
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        showToast("Please select an Excel file first!", "error");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        
+        let count = 0;
+        rows.forEach((row) => {
+          if (row.ShippingID && row.City) {
+            db.ref("shipping_metadata/" + row.ShippingID).set({ City: row.City });
+            count++;
+          }
+        });
+
+        showToast(`Excel uploaded successfully! ${count} shipping records imported.`);
+        fileInput.value = "";
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>
